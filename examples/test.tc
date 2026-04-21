@@ -1,0 +1,27 @@
+let a: int = -(1+3);
+let b: int = 10;
+print a;
+
+let c: int = a + b * 2;
+print c;
+
+c = c - 5;
+print(c);
+
+let pi: float = 3.14;
+let r: float = 2.0;
+let area: float = pi * r * r;
+print area;
+
+let no_brackets: int = 5 - 3 * 5;
+let brackets: int = (5 - 3) * 5;
+
+print no_brackets;
+print brackets;
+
+let dived: float = 10.0 / 3.0;
+
+print dived;
+
+read a;
+print a * 10;
