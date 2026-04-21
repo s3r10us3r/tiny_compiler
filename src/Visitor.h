@@ -11,6 +11,7 @@ namespace tc {
     class AssignmentStmtAst;
     class PrintStmtAst;
     class ReadStmtAst;
+    class ArrayAccessExprAst;
     class ProgramAst;
 }
 
@@ -22,6 +23,7 @@ namespace tc {
             virtual void visit(IntExprAst* node) = 0;
             virtual void visit(FloatExprAst* node) = 0;
             virtual void visit(VariableExprAst* node) = 0;
+            virtual void visit(ArrayAccessExprAst* node) = 0;
             virtual void visit(UnaryExprAst* node) = 0;
             virtual void visit(BinaryExprAst* node) = 0;
             virtual void visit(VarDeclStmtAst* node) = 0;

@@ -24,6 +24,17 @@ namespace tc {
         std::string to_string() const override {return "float";}
     };
 
+    struct ArrayTypeAst : public TypeAst {
+        unsigned int size;
+        std::shared_ptr<TypeAst> base_type;
+
+        ArrayTypeAst(unsigned int size, std::shared_ptr<TypeAst> base_type) : size(size), base_type(base_type) {}
+
+        std::string to_string() const override {
+            return base_type->to_string() + "[" + std::to_string(size) + "]";
+        }
+    };
+
     struct BaseAst {
         public:
             virtual void accept(Visitor& v) = 0;
@@ -39,7 +50,6 @@ namespace tc {
     };
 
     inline std::string pad(int n) { return std::string(n * 2, ' '); }
-
 
     struct UnaryExprAst : public ExprAst {
         int op; // '-'
@@ -96,6 +106,25 @@ namespace tc {
             }
     };
 
+    struct ArrayAccessExprAst : public ExprAst {
+        std::unique_ptr<ExprAst> target; 
+        std::unique_ptr<ExprAst> index;
+
+        ArrayAccessExprAst(int line, int col, std::unique_ptr<ExprAst> target, std::unique_ptr<ExprAst> index)
+            : ExprAst(line, col), target(std::move(target)), index(std::move(index)) {}
+
+        std::string dump(int indent = 0) const override {
+            std::string s = pad(indent) + "ArrayAccess [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]\n";
+            s += pad(indent + 1) + "Target:\n" + target->dump(indent + 2) + "\n";
+            s += pad(indent + 1) + "Index:\n" + index->dump(indent + 2);
+            return s;
+        }
+
+        void accept(Visitor& v) override {
+            v.visit(this); 
+        }
+    };
+
     struct BinaryExprAst : public ExprAst {
         int op;
         std::unique_ptr<ExprAst> left, right;
@@ -141,17 +170,19 @@ namespace tc {
     };
 
     struct AssignmentStmtAst : public StmtAst {
-        std::string name;
+        std::unique_ptr<ExprAst> target;
         std::unique_ptr<ExprAst> init_expr;
         public:
-            AssignmentStmtAst(int line, int col, std::string name, std::unique_ptr<ExprAst> init_expr) 
-                : StmtAst(line, col), name(name), init_expr(std::move(init_expr)) {}
+            AssignmentStmtAst(int line, int col, std::unique_ptr<ExprAst> target, std::unique_ptr<ExprAst> init_expr) 
+                : StmtAst(line, col), target(std::move(target)), init_expr(std::move(init_expr)) {}
             
-            std::string dump(int indent) const override {
-                std::string s = pad(indent) + "Assignment(name: " + name + ") [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]\n";
+            std::string dump(int indent = 0) const override {
+                std::string s = pad(indent) + "Assignment [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]\n";
+                s += pad(indent + 1) + "Target:\n" + target->dump(indent + 2) + "\n";
                 s += pad(indent + 1) + "Init:\n" + init_expr->dump(indent + 2);
                 return s;
             }
+
             void accept(Visitor& v) override {
                 v.visit(this); 
             }
@@ -172,13 +203,13 @@ namespace tc {
     };
 
     struct ReadStmtAst : public StmtAst {
-        std::string name;
+        std::unique_ptr<ExprAst> target;
         public:
-            ReadStmtAst(int line, int col, std::string name) 
-                : StmtAst(line, col), name(name) {}
+            ReadStmtAst(int line, int col, std::unique_ptr<ExprAst> target) 
+                : StmtAst(line, col), target(std::move(target)) {}
             
             std::string dump(int indent) const override {
-                return pad(indent) + "READ " + name + " [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]";
+                return pad(indent) + "READ " + target->dump() + " [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]";
             }
             void accept(Visitor& v) override {
                 v.visit(this); 
@@ -212,7 +243,6 @@ namespace tc {
             ProgramAst parse();
         private:
             std::unique_ptr<StmtAst> parse_stmt();
-
             std::unique_ptr<StmtAst> parse_var_decl();
             std::unique_ptr<StmtAst> parse_print();
             std::unique_ptr<StmtAst> parse_read();
@@ -222,8 +252,9 @@ namespace tc {
             std::unique_ptr<ExprAst> parse_term();
             std::unique_ptr<ExprAst> parse_unary();
             std::unique_ptr<ExprAst> parse_factor();
-
-            std::shared_ptr<TypeAst> parse_type(std::string& type_str);
+            std::unique_ptr<ExprAst> parse_var_expr();
+            std::shared_ptr<TypeAst> parse_type();
+            std::shared_ptr<TypeAst> parse_base_type(std::string& type_str);
             void advance();
             void expect(int expected_type, std::string msg);
             [[noreturn]] void report_error(const std::string& message, const tc::TokenData& token);

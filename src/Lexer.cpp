@@ -96,7 +96,7 @@ std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int l
 
 
 bool tc::Lexer::is_known_single_char(int ch) {
-    std::string known_chars = "=+-*/();:";
+    std::string known_chars = "=+-*/();:][";
     return !(known_chars.find((char)ch) == std::string::npos);
 }
 

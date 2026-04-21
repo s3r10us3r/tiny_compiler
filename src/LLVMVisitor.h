@@ -18,9 +18,11 @@ namespace tc {
             virtual void visit(PrintStmtAst* node) override;
             virtual void visit(ReadStmtAst* node) override;
             virtual void visit(ProgramAst* node) override;
+            virtual void visit(ArrayAccessExprAst* node) override;
 
             void dump_ir(llvm::raw_ostream& out) const;
         private:
+            tc::PointerInfo get_pointer_info(tc::ExprAst* node);
             llvm::Type* get_llvm_type(TypeAst* type);
             llvm::Value* get_value(tc::ExprAst* node);
             [[noreturn]] void report_error(const std::string& message, int line);

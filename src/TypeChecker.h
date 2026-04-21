@@ -32,11 +32,13 @@ namespace tc {
             virtual void visit(ReadStmtAst* node) override;
             virtual void visit(ProgramAst* node) override;
             virtual void visit(UnaryExprAst* node) override;
+            virtual void visit(ArrayAccessExprAst* node) override;
 
             const std::vector<SemanticError>& get_errors() { return errors; }
         private:
             std::shared_ptr<TypeAst> get_type(ExprAst* node);
             void push_error(int line, int col, std::string content);
             bool is_same_type(TypeAst* t1, TypeAst* t2) const;
+            TypeAst* get_deep_base_type(TypeAst* type) const;
     };
 }

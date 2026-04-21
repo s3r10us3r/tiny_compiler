@@ -1,7 +1,9 @@
 #include "Parser.h"
 #include "Lexer.h"
+#include <algorithm>
 #include <cassert>
 #include <memory>
+#include <string>
 
 std::shared_ptr<tc::TypeAst> tc::TypeAst::get_int() {
     return std::make_shared<tc::IntTypeAst>();
@@ -57,9 +59,7 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_var_decl() {
     expect(':', "':' expected.");
     advance();
     expect(tok_type, "Type expected.");
-    auto type_str = std::get<std::string>(cur_tok.value);
-    auto type = parse_type(type_str);
-    advance();
+    auto type = parse_type();
     expect('=', "'=' expected.");
     advance();
     auto expr = parse_expr();
@@ -78,21 +78,17 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_read() {
     expect(tok_read, "To nawet nie powinno sie móc wydarzyć");
     int line = cur_tok.line; int col = cur_tok.col;
     advance();
-    expect(tok_id, "Expected identifier");
-    auto name  = std::get<std::string>(cur_tok.value);
-    advance();
-    return std::make_unique<ReadStmtAst>(line, col, name);
+    auto target_expr = parse_var_expr();
+    return std::make_unique<ReadStmtAst>(line, col, std::move(target_expr));
 }
 
 std::unique_ptr<tc::StmtAst> tc::Parser::parse_assgn() {
-    expect(tok_id, "To nawet nie powinno sie móc wydarzyć");
     int line = cur_tok.line; int col = cur_tok.col;
-    auto name  = std::get<std::string>(cur_tok.value);
-    advance();
+    auto target_expr = parse_var_expr();
     expect('=', "'=' expected");
     advance();
     auto expr = parse_expr();
-    return std::make_unique<AssignmentStmtAst>(line, col, name, std::move(expr));
+    return std::make_unique<AssignmentStmtAst>(line, col, std::move(target_expr), std::move(expr));
 }
 
 std::unique_ptr<tc::ExprAst> tc::Parser::parse_expr() {
@@ -136,9 +132,7 @@ std::unique_ptr<tc::ExprAst> tc::Parser::parse_unary() {
 std::unique_ptr<tc::ExprAst> tc::Parser::parse_factor() {
     int line = cur_tok.line; int col = cur_tok.col;
     if (cur_tok.type == tok_id) {
-        auto name  = std::get<std::string>(cur_tok.value);
-        advance();
-        return std::make_unique<VariableExprAst>(line, col, name);
+        return parse_var_expr();
     }
     if (cur_tok.type == tok_int_lit) {
         auto value = std::get<int>(cur_tok.value);
@@ -160,6 +154,32 @@ std::unique_ptr<tc::ExprAst> tc::Parser::parse_factor() {
     report_error("Unexpected token at the end of expression.", cur_tok);
 }
 
+std::unique_ptr<tc::ExprAst> tc::Parser::parse_var_expr() {
+    int line = cur_tok.line;
+    int col = cur_tok.col;
+    
+    expect(tok_id, "Expected identifier.");
+    auto name = std::get<std::string>(cur_tok.value);
+    advance();
+
+    std::unique_ptr<tc::ExprAst> node = std::make_unique<VariableExprAst>(line, col, name);
+
+    while (cur_tok.type == '[') {
+        int access_line = cur_tok.line;
+        int access_col = cur_tok.col;
+        advance(); 
+
+        auto index_expr = parse_expr();
+
+        expect(']', "Expected ']' after array index.");
+        advance(); 
+
+        node = std::make_unique<ArrayAccessExprAst>(access_line, access_col, std::move(node), std::move(index_expr));
+    }
+
+    return node;
+}
+
 [[noreturn]] void tc::Parser::report_error(const std::string& message, const tc::TokenData& token) {
     std::string full_message = "Unexpected token at: " + std::to_string(token.line)
         + ", Column " + std::to_string(token.col) + "]: "+ message;
@@ -176,12 +196,45 @@ void tc::Parser::expect(int expected_type, std::string msg) {
     }
 }
 
-std::shared_ptr<tc::TypeAst> tc::Parser::parse_type(std::string& type_str) {
+std::shared_ptr<tc::TypeAst> tc::Parser::parse_type() {
+    auto type_str = std::get<std::string>(cur_tok.value);
+    advance();
+    auto base_type = parse_base_type(type_str);
+
+    // is array
+    std::vector<unsigned int> dimensions;
+    while (cur_tok.type == '[') {
+        advance();
+        expect(tok_int_lit, "Expected int literal.");
+        int signed_size = std::get<int>(cur_tok.value);
+        if (signed_size <= 0) {
+            report_error("Expected positive integer, got " + std::to_string(signed_size), cur_tok);
+        }
+        unsigned int size = (unsigned int)signed_size;
+        dimensions.push_back(size);
+
+        advance();
+        expect(']', "Expected ']'.");
+        advance();
+    } 
+
+    if (dimensions.empty()) return base_type;
+    std::reverse(dimensions.begin(), dimensions.end());
+
+    for (unsigned int dimension : dimensions) {
+        base_type = std::make_shared<ArrayTypeAst>(dimension, base_type);
+    }
+
+    return base_type;
+}
+
+
+std::shared_ptr<tc::TypeAst> tc::Parser::parse_base_type(std::string& type_str) {
     if (type_str == "float") {
-        return std::make_unique<FloatTypeAst>();
+        return TypeAst::get_float();
     }
     if (type_str == "int") {
-        return std::make_unique<IntTypeAst>();
+        return TypeAst::get_int();
     }
     report_error("Unexpected type '" + type_str + "'", cur_tok);
 }

@@ -17,6 +17,11 @@ namespace tc {
         std::shared_ptr<TypeAst> type;
     };
 
+    struct PointerInfo {
+        llvm::Value* ptr;
+        llvm::Type* type;
+    };
+
     class CodegenContext {
         public:
             std::unique_ptr<llvm::LLVMContext> llvm_ctx;

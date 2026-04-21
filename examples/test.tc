@@ -1,27 +1,43 @@
-let a: int = -(1+3);
-let b: int = 10;
-print a;
+let arr: int[5] = 1;
 
-let c: int = a + b * 2;
-print c;
+arr[0] = 10;
+arr[4] = 50;
 
-c = c - 5;
-print(c);
+print arr[1];          
+print arr[2];          
+print arr[3];          
+print arr[4];          
+print arr[5];          
 
-let pi: float = 3.14;
-let r: float = 2.0;
-let area: float = pi * r * r;
-print area;
+let sum: int = arr[0] + arr[4];
+print sum;      
 
-let no_brackets: int = 5 - 3 * 5;
-let brackets: int = (5 - 3) * 5;
+let mat: int[2][3] = 0;
 
-print no_brackets;
-print brackets;
+mat[0][0] = 1;
+mat[0][1] = 2;
+mat[0][2] = 3;
+mat[1][0] = 7;
+mat[1][1] = 8;
+mat[1][2] = 9;
 
-let dived: float = 10.0 / 3.0;
+print mat[0][0];
+print mat[0][1];
+print mat[1][0];
 
-print dived;
+let f_arr: float[3] = 1.1;
+f_arr[1] = 2.2 * 2.0;
+print f_arr[0];
+print f_arr[1];
+print f_arr[2];
 
-read a;
-print a * 10;
+print 999999;
+read mat[0][0];
+print mat[0][0];
+
+let arr2: int[5] = 1;
+let mat2: int[6][5] = 2;
+
+mat2[3] = arr2;
+print mat2[3][1];
+print mat2[2][1];
