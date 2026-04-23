@@ -88,6 +88,9 @@ void tc::LLVMVisitor::visit(tc::VariableExprAst* node) {
     );
 }
 
+void tc::LLVMVisitor::visit(StringExprAst* node) {
+    last_value = codegen_context.builder->CreateGlobalString(node->val, "str_tmp");
+}
 
 void tc::LLVMVisitor::visit(UnaryExprAst* node) {
     llvm::Value* val = get_value(node->operand.get());
@@ -132,6 +135,9 @@ llvm::Type* tc::LLVMVisitor::get_llvm_type(tc::TypeAst* type) {
         auto* element_type = get_llvm_type(arr_type->base_type.get());
         return llvm::ArrayType::get(element_type, arr_type->size);
     }
+    else if (dynamic_cast<tc::StringTypeAst*>(type)) {
+        return codegen_context.builder->getPtrTy();
+    }
     throw std::runtime_error("Error: unknown type during code generation!");
 }
 
@@ -139,7 +145,7 @@ llvm::Type* tc::LLVMVisitor::get_llvm_type(tc::TypeAst* type) {
 void tc::LLVMVisitor::visit(tc::PrintStmtAst* node) {
     llvm::Value* val = get_value(node->expr.get());
     if (!val) {
-        throw std::runtime_error("Blad: Nie udalo sie wygenerowac wartosci dla print");
+        throw std::runtime_error("Error: could not create print value!");
     }
 
     // sygnatura funkcji printf
@@ -156,6 +162,8 @@ void tc::LLVMVisitor::visit(tc::PrintStmtAst* node) {
         formatStr = codegen_context.builder->CreateGlobalString("%d\n"); 
     } else if (val->getType()->isDoubleTy()) {
         formatStr = codegen_context.builder->CreateGlobalString("%f\n");
+    } else if (val->getType()->isPointerTy()) {
+        formatStr = codegen_context.builder->CreateGlobalString("%s\n");
     } else {
         report_error("Unsupported print type", node->line);
     }
@@ -179,7 +187,10 @@ void tc::LLVMVisitor::visit(tc::ReadStmtAst* node) {
         formatStr = codegen_context.builder->CreateGlobalString("%d");
     } else if (info.type->isDoubleTy()) {
         formatStr = codegen_context.builder->CreateGlobalString("%lf");
-    } else {
+    } else if (info.type->isPointerTy()) {
+        formatStr = codegen_context.builder->CreateGlobalString(" %m[^\n]");
+    }
+    else {
         report_error("Unsupported read type", node->line);
     }
 

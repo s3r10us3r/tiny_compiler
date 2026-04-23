@@ -6,11 +6,18 @@
 #include <string>
 
 std::shared_ptr<tc::TypeAst> tc::TypeAst::get_int() {
-    return std::make_shared<tc::IntTypeAst>();
+    static auto instance = std::make_shared<tc::IntTypeAst>();
+    return instance;
 }
 
 std::shared_ptr<tc::TypeAst> tc::TypeAst::get_float() {
-    return std::make_shared<tc::FloatTypeAst>();
+    static auto instance = std::make_shared<tc::FloatTypeAst>();
+    return instance;
+}
+
+std::shared_ptr<tc::TypeAst> tc::TypeAst::get_string() {
+    static auto instance = std::make_shared<tc::StringTypeAst>();
+    return instance;
 }
 
 void tc::ProgramAst::add_stmt(std::unique_ptr<tc::StmtAst> stmt) {
@@ -44,7 +51,7 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_stmt() {
         report_error("Unrecognized statement.", cur_tok);
     }
 
-    expect(';', "';' epected");
+    expect(';', "';' expected");
     advance();
     return stmt;
 }
@@ -131,6 +138,11 @@ std::unique_ptr<tc::ExprAst> tc::Parser::parse_unary() {
 
 std::unique_ptr<tc::ExprAst> tc::Parser::parse_factor() {
     int line = cur_tok.line; int col = cur_tok.col;
+    if (cur_tok.type == tok_str) {
+        auto value = std::get<std::string>(cur_tok.value);
+        advance();
+        return std::make_unique<StringExprAst>(line, col, value);
+    }
     if (cur_tok.type == tok_id) {
         return parse_var_expr();
     }
@@ -235,6 +247,9 @@ std::shared_ptr<tc::TypeAst> tc::Parser::parse_base_type(std::string& type_str) 
     }
     if (type_str == "int") {
         return TypeAst::get_int();
+    }
+    if (type_str == "str") {
+        return TypeAst::get_string();
     }
     report_error("Unexpected type '" + type_str + "'", cur_tok);
 }

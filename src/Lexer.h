@@ -15,6 +15,7 @@ namespace tc {
         tok_id = -6,
         tok_int_lit = -7,
         tok_float_lit = -8,
+        tok_str = -9
     };
 
 

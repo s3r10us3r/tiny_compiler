@@ -10,6 +10,7 @@ namespace tc {
         public:
             virtual void visit(IntExprAst* node) override;
             virtual void visit(FloatExprAst* node) override;
+            virtual void visit(StringExprAst* node) override;
             virtual void visit(VariableExprAst* node) override;
             virtual void visit(UnaryExprAst* node) override;
             virtual void visit(BinaryExprAst* node) override;

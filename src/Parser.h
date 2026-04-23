@@ -14,6 +14,7 @@ namespace tc {
             virtual std::string to_string() const = 0;
             static std::shared_ptr<TypeAst> get_int();
             static std::shared_ptr<TypeAst> get_float();
+            static std::shared_ptr<TypeAst> get_string();
     };
 
     struct IntTypeAst : public TypeAst {
@@ -22,6 +23,10 @@ namespace tc {
 
     struct FloatTypeAst : public TypeAst {
         std::string to_string() const override {return "float";}
+    };
+
+    struct StringTypeAst : public TypeAst {
+        std::string to_string() const override {return "string";}
     };
 
     struct ArrayTypeAst : public TypeAst {
@@ -89,6 +94,19 @@ namespace tc {
             std::string dump(int indent = 0) const override {
                 return pad(indent) + "FloatLiteral(" + std::to_string(val) + ") [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]";
             }
+            void accept(Visitor& v) override {
+                v.visit(this); 
+            }
+    };
+
+    struct StringExprAst : public LiteralExprAst<std::string> {
+        public:
+            StringExprAst(int line, int col, std::string val) : LiteralExprAst<std::string>(line, col, std::move(val)) {}
+            
+            std::string dump(int indent = 0) const override {
+                return pad(indent) + "StringLiteral(\"" + val + "\") [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]";
+            }
+            
             void accept(Visitor& v) override {
                 v.visit(this); 
             }

@@ -10,9 +10,12 @@ void tc::TypeChecker::visit(ProgramAst* node) {
 
 void tc::TypeChecker::visit(ReadStmtAst* node) {
     auto type = get_type(node->target.get());
-
     if (std::dynamic_pointer_cast<tc::ArrayTypeAst>(type)) {
         push_error(node->line, node->col, "Cannot read directly into an array type.");
+    }
+    if (!dynamic_cast<VariableExprAst*>(node->target.get()) && 
+        !dynamic_cast<ArrayAccessExprAst*>(node->target.get())) {
+        push_error(node->line, node->col, "Target of 'read' must be a variable or array element.");
     }
 }
 
@@ -31,6 +34,12 @@ void tc::TypeChecker::visit(UnaryExprAst* node) {
 void tc::TypeChecker::visit(IntExprAst* node) {
     last_type = tc::TypeAst::get_int();
 }
+
+
+void tc::TypeChecker::visit(StringExprAst* node) {
+    last_type = tc::TypeAst::get_string();
+}
+
 
 void tc::TypeChecker::visit(FloatExprAst* node) {
     last_type = tc::TypeAst::get_float();
@@ -59,6 +68,11 @@ void tc::TypeChecker::visit(tc::ArrayAccessExprAst* node) {
 void tc::TypeChecker::visit(BinaryExprAst* node) {
     auto left_type = get_type(node->left.get());
     auto right_type = get_type(node->right.get());
+
+    if (left_type->to_string() == "string" || right_type->to_string() == "string") {
+        push_error(node->line, node->col, "String operations are not implemented.");
+        return;
+    }
 
     if (!is_same_type(left_type.get(), right_type.get())) {
         push_error(node->line, node->col, "Mismatched types.");

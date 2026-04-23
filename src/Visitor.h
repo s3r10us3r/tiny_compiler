@@ -4,6 +4,7 @@
 namespace tc {
     class IntExprAst;
     class FloatExprAst;
+    class StringExprAst;
     class UnaryExprAst;
     class VariableExprAst;
     class BinaryExprAst;
@@ -22,6 +23,7 @@ namespace tc {
 
             virtual void visit(IntExprAst* node) = 0;
             virtual void visit(FloatExprAst* node) = 0;
+            virtual void visit(StringExprAst* node) = 0;
             virtual void visit(VariableExprAst* node) = 0;
             virtual void visit(ArrayAccessExprAst* node) = 0;
             virtual void visit(UnaryExprAst* node) = 0;

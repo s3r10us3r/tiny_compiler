@@ -58,6 +58,23 @@ tc::TokenData tc::Lexer::get_next_token() {
         return { col, line, tok_int_lit, std::stoi(num_str) };
     }
 
+    if (last_char == '"') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        std::string str_literal = "";
+        while (last_char != '"' && last_char != EOF && !input.eof()) {
+            str_literal += last_char;
+            next_char();
+        }
+        if (last_char != '"') {
+            report_error("Unterminated string literal");
+        }
+        next_char();
+        return { col, line, tok_str, str_literal };
+    }
+
     if (last_char == EOF || input.eof()) {
         return {curr_col, curr_line, tok_eof, std::monostate()};
     }
@@ -90,6 +107,9 @@ std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int l
     if (keyword == "float") {
         return { {line, col, tok_type, "float"} };
     } 
+    if (keyword == "str") {
+        return { {line, col, tok_type, "str"} };
+    }
 
     return std::nullopt;
 }
