@@ -1,0 +1,5 @@
+let a: str = "Hello World!";
+print a;
+print "Czytamy string!";
+read a;
+print a;
