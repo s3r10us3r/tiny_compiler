@@ -1,0 +1,54 @@
+print "--- Test 1: Podstawy ---";
+let t: bool = true;
+let f: bool = false;
+print t;
+print f;
+
+print "--- Test 2: Relacje matematyczne ---";
+let x: int = 10;
+let y: int = 20;
+print x < y;
+print x >= y;
+print x == 10;
+print x != 10;
+
+print "--- Test 3: Logika i priorytety ---";
+print t and f;
+print t or not f;
+
+print x + 5 > 14 and y == 20;
+
+print x == 9 or y <= 30;
+
+print "--- Test 4: Ostateczny test Short-Circuit ---";
+
+print false and (x / 0 == 1);
+print true or (x / 0 == 1);
+
+print "--- Test 5: Wczytywanie z klawiatury ---";
+let b: bool = false;
+print "Podaj 1 (true) lub 0 (false):";
+read b;
+print "Podales:";
+print b;
+
+
+print "--- Test 6: Logiczny XOR ---";
+print "true xor true (powinno byc 0/false):";
+print true xor true;
+
+print "true xor false (powinno byc 1/true):";
+print true xor false;
+
+print "false xor true (powinno byc 1/true):";
+print false xor true;
+
+print "false xor false (powinno byc 0/false):";
+print false xor false;
+
+print "--- Test 7: XOR z priorytetami i relacjami ---";
+print x == 10 xor y == 20;
+
+print x == 10 xor y == 99;
+
+print true xor false and true;

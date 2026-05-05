@@ -15,6 +15,7 @@ namespace tc {
             static std::shared_ptr<TypeAst> get_int();
             static std::shared_ptr<TypeAst> get_float();
             static std::shared_ptr<TypeAst> get_string();
+            static std::shared_ptr<TypeAst> get_bool();
     };
 
     struct IntTypeAst : public TypeAst {
@@ -27,6 +28,10 @@ namespace tc {
 
     struct StringTypeAst : public TypeAst {
         std::string to_string() const override {return "string";}
+    };
+
+    struct BoolTypeAst : public TypeAst {
+        std::string to_string() const override {return "bool";}
     };
 
     struct ArrayTypeAst : public TypeAst {
@@ -55,6 +60,7 @@ namespace tc {
     };
 
     inline std::string pad(int n) { return std::string(n * 2, ' '); }
+
 
     struct UnaryExprAst : public ExprAst {
         int op; // '-'
@@ -110,6 +116,16 @@ namespace tc {
             void accept(Visitor& v) override {
                 v.visit(this); 
             }
+    };
+
+
+    struct BoolExprAst : public LiteralExprAst<bool> {
+        public:
+            BoolExprAst(int line, int col, bool val) : LiteralExprAst<bool>(line, col, val) { }
+            std::string dump(int indent = 0) const override {
+                return pad(indent) + "BoolLiteral(" + (val ? "true" : "false") + ") [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]";
+            }
+            void accept(Visitor& v) override { v.visit(this); }
     };
 
     struct VariableExprAst : public ExprAst {
@@ -245,11 +261,47 @@ namespace tc {
                 }
                 return r;
             }
+            
             void accept(Visitor& v) override {
                 v.visit(this); 
             }
     };
 
+    struct BlockAst : public StmtAst {
+        std::vector<std::unique_ptr<StmtAst>> statements;
+        public:
+            BlockAst(int line, int col) : StmtAst(line, col) {}
+            void push_stmt(std::unique_ptr<StmtAst> stmt) { statements.push_back(std::move(stmt)); }
+
+            std::string dump(int indent) const override {
+                std::string r = "{";
+                for (const auto& s : statements) {
+                    r += s->dump(indent + 1) + "\n";
+                }
+                return r;
+            }
+
+            void accept(Visitor& v) override {
+                v.visit(this); 
+            }
+    };
+
+    struct WhileStmtAst : public StmtAst {
+        std::unique_ptr<ExprAst> condition;
+        std::unique_ptr<StmtAst> body;
+
+        WhileStmtAst(int line, int col, std::unique_ptr<ExprAst> condition, std::unique_ptr<StmtAst> body)
+            : StmtAst(line, col), condition(std::move(condition)), body(std::move(body)) {}
+
+        std::string dump(int indent = 0) const override {
+            std::string s = pad(indent) + "WHILE [L:" + std::to_string(line) + ", C:" + std::to_string(col) + "]\n";
+            s += pad(indent + 1) + "Condition:\n" + condition->dump(indent + 2) + "\n";
+            s += pad(indent + 1) + "Body:\n" + body->dump(indent + 2);
+            return s;
+        }
+
+        void accept(Visitor& v) override { v.visit(this); }
+    };
 
     class Parser {
         TokenData cur_tok;
@@ -265,8 +317,15 @@ namespace tc {
             std::unique_ptr<StmtAst> parse_print();
             std::unique_ptr<StmtAst> parse_read();
             std::unique_ptr<StmtAst> parse_assgn();
+            std::unique_ptr<StmtAst> parse_block();
+            std::unique_ptr<StmtAst> parse_while();
 
             std::unique_ptr<ExprAst> parse_expr();
+            std::unique_ptr<ExprAst> parse_logical_and();
+            std::unique_ptr<ExprAst> parse_relational();
+            std::unique_ptr<ExprAst> parse_math_expr();
+            std::unique_ptr<tc::ExprAst> parse_logical_xor();
+
             std::unique_ptr<ExprAst> parse_term();
             std::unique_ptr<ExprAst> parse_unary();
             std::unique_ptr<ExprAst> parse_factor();

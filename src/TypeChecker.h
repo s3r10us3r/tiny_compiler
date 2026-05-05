@@ -2,6 +2,7 @@
 #include "Visitor.h"
 #include <llvm/IR/Value.h>
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace tc {
@@ -18,22 +19,28 @@ namespace tc {
     };
 
     class TypeChecker : public Visitor {
-        std::map<std::string, std::shared_ptr<TypeAst>> symbol_table;
+        std::vector<std::map<std::string, std::shared_ptr<TypeAst>>> scopes;
         std::vector<SemanticError> errors;
         std::shared_ptr<TypeAst> last_type = nullptr;
         public:
+            TypeChecker() { scopes.push_back( {} ); }
+
             virtual void visit(IntExprAst* node) override;
             virtual void visit(FloatExprAst* node) override;
             virtual void visit(StringExprAst* node) override;
+            virtual void visit(BoolExprAst* node) override;
+
             virtual void visit(VariableExprAst* node) override;
             virtual void visit(BinaryExprAst* node) override;
             virtual void visit(VarDeclStmtAst* node) override;
+            virtual void visit(WhileStmtAst* node) override;
             virtual void visit(AssignmentStmtAst* node) override;
             virtual void visit(PrintStmtAst* node) override;
             virtual void visit(ReadStmtAst* node) override;
             virtual void visit(ProgramAst* node) override;
             virtual void visit(UnaryExprAst* node) override;
             virtual void visit(ArrayAccessExprAst* node) override;
+            virtual void visit(BlockAst* node) override;
 
             const std::vector<SemanticError>& get_errors() { return errors; }
         private:

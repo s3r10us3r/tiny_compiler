@@ -1,0 +1,78 @@
+print "--- 1. Typy proste i Wejscie/Wyjscie ---";
+let calkowita: int = 42;
+let zmienna_float: float = 3.14;
+let prawda: bool = true;
+let napis: str = "Hello World!";
+
+print calkowita;
+print zmienna_float;
+print napis;
+
+print "";
+print "--- 2. Matematyka i priorytety ---";
+let wynik_bez_nawiasow: int = 10 + 5 * 2;
+let wynik_z_nawiasami: int = (10 + 5) * 2;
+let unarny_minus: int = -wynik_z_nawiasami;
+
+print "10 + 5 * 2 = ";
+print wynik_bez_nawiasow;
+print "(10 + 5) * 2 = ";
+print wynik_z_nawiasami;
+print "Unarny minus: ";
+print unarny_minus;
+
+print "";
+print "--- 3. Logika (Short-circuit, XOR, NOT) ---";
+
+
+let sc_test: bool = false and (10 / 0 == 1);
+print "Short-circuit AND (10/0 pominiete): ";
+print sc_test;
+
+print "Test XOR (true xor true -> powinno byc 0): ";
+print true xor true;
+print "Test NOT (not false -> powinno byc 1): ";
+print not false;
+
+print "";
+print "--- 4. Zlozone relacje ---";
+let a: int = 10;
+let b: int = 20;
+
+let relacja: bool = (a < b) and (b >= 20) xor (a == 5);
+print "(10 < 20) and (20 >= 20) xor (10 == 5): ";
+print relacja;
+
+print "";
+print "--- 5. Tablice i petle sterujace ---";
+let tablica: int[5] = 0;
+let i: int = 0;
+
+print "Zapis i odczyt w petli while:";
+while i < 5 {
+    tablica[i] = i * 10;
+    print tablica[i];
+    i = i + 1;
+};
+
+print "";
+print "--- 6. Tablice wielowymiarowe (Macierz 3x3) ---";
+let macierz: int[3][3] = 0;
+macierz[0][0] = 1;
+macierz[1][1] = 99;
+macierz[2][2] = 1;
+
+print "Cała macierz:";
+
+print "Srodek macierzy macierz[1][1]:";
+print macierz[1][1];
+
+print "Read do macierzy";
+read macierz[1][2];
+print macierz[1][2];
+
+print "Read stringa";
+let r_str: str = "";
+read r_str;
+print r_str;
+

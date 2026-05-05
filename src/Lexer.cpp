@@ -75,6 +75,54 @@ tc::TokenData tc::Lexer::get_next_token() {
         return { col, line, tok_str, str_literal };
     }
 
+    if (last_char == '=') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        if (last_char == '=') {
+            next_char();
+            return {col, line, tok_eq, std::monostate()};
+        }
+        return {col, line, '=', std::monostate()};
+    }
+
+    if (last_char == '!') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        if (last_char == '=') {
+            next_char();
+            return {col, line, tok_neq, std::monostate()};
+        }
+        report_error("Expected '=' after '!'");
+    }
+
+    if (last_char == '<') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        if (last_char == '=') {
+            next_char();
+            return {col, line, tok_less_or_eq, std::monostate()};
+        }
+        return {col, line, '<', std::monostate()};
+    }
+
+    if (last_char == '>') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        if (last_char == '=') {
+            next_char();
+            return {col, line, tok_more_or_eq, std::monostate()};
+        }
+        return {col, line, '>', std::monostate()};
+    }
+
     if (last_char == EOF || input.eof()) {
         return {curr_col, curr_line, tok_eof, std::monostate()};
     }
@@ -89,26 +137,52 @@ tc::TokenData tc::Lexer::get_next_token() {
 }
 
 std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int line, int col) {
-    // empty keywords
+    // keywords
     if (keyword == "let") {
-        return { {line, col, tok_let, std::monostate()} };
+        return { {col, line, tok_let, std::monostate()} };
     }
     if (keyword == "read") {
-        return { {line, col, tok_read, std::monostate()} };
+        return { {col, line, tok_read, std::monostate()} };
     }
     if (keyword == "print") {
-        return { {line, col, tok_print, std::monostate()} };
+        return { {col, line, tok_print, std::monostate()} };
+    }
+    if (keyword == "and") {
+        return { {col, line, tok_and, std::monostate()} };
+    }
+    if (keyword == "or") {
+        return { {col, line, tok_or, std::monostate()} };
+    }
+    if (keyword == "not") {
+        return { {col, line, tok_not, std::monostate()} };
+    }
+    if (keyword == "while") {
+        return { {col, line, tok_while, std::monostate()} };
+    }
+    if (keyword == "xor") {
+        return { {col, line, tok_xor, std::monostate()} };
     }
 
     // builtin types
     if (keyword == "int") {
-        return { {line, col, tok_type, "int"} };
+        return { {col, line, tok_type, "int"} };
     } 
     if (keyword == "float") {
-        return { {line, col, tok_type, "float"} };
+        return { {col, line, tok_type, "float"} };
     } 
     if (keyword == "str") {
-        return { {line, col, tok_type, "str"} };
+        return { {col, line, tok_type, "str"} };
+    }
+    if (keyword == "bool") {
+        return { {col, line, tok_type, "bool"} };
+    }
+
+    // values
+    if (keyword == "true") {
+        return { {col, line, tok_bool_lit, true} };
+    }
+    if (keyword == "false") {
+        return { {col, line, tok_bool_lit, false} };
     }
 
     return std::nullopt;
@@ -116,7 +190,7 @@ std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int l
 
 
 bool tc::Lexer::is_known_single_char(int ch) {
-    std::string known_chars = "=+-*/();:][";
+    std::string known_chars = "=+-*/();:][{}";
     return !(known_chars.find((char)ch) == std::string::npos);
 }
 
@@ -127,11 +201,10 @@ bool tc::Lexer::is_known_single_char(int ch) {
 }
 
 void tc::Lexer::next_char() {
-    last_char = input.get();
     if (last_char == '\n') {
         curr_line += 1;
-        curr_col = 1;
-    } else {
-        curr_col += 1;
+        curr_col = 0;
     }
+    last_char = input.get();
+    curr_col += 1;
 }

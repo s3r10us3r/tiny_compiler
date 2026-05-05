@@ -21,7 +21,7 @@ add_executable(compiler
     src/Parser.cpp 
     src/LLVMVisitor.cpp
     src/TypeChecker.cpp
-    # src/AST.cpp (jeśli masz)
+    src/MermaidVisitor.cpp
 )
 
 target_link_libraries(compiler LLVM)

@@ -1,0 +1,4 @@
+let tab: int[5] = 0;
+print tab[6];
+
+

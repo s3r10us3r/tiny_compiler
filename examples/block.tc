@@ -1,0 +1,8 @@
+let a : int = 10;
+
+{
+    print a;
+    let a : int = 11;
+    print a;
+};
+print a;

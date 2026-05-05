@@ -1,0 +1,16 @@
+let buffer: int[3] = 0;
+let i: int = 0;
+
+let math_with_brackets: int = (10 + 5) * 2;
+
+let math_standard: int = 10 + 5 * 2;
+
+while i < 3 {
+    print "Enter value:";
+    read buffer[i];
+    i = i + 1;
+};
+
+let result: bool = (buffer[0] > 10 or buffer[1] > 10) and i == 3;
+
+print result;

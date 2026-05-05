@@ -1,0 +1,5 @@
+let integer: int = 10;
+let real: float = 10.1;
+
+print integer - 4;
+print real * real;

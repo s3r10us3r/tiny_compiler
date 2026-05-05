@@ -15,7 +15,17 @@ namespace tc {
         tok_id = -6,
         tok_int_lit = -7,
         tok_float_lit = -8,
-        tok_str = -9
+        tok_str = -9,
+        tok_bool_lit = -10,
+        tok_and = -11,
+        tok_or = -12,
+        tok_eq = -13,
+        tok_more_or_eq = -14,
+        tok_less_or_eq = -15,
+        tok_not = -16,
+        tok_neq = -17,
+        tok_while = -18,
+        tok_xor = -19,
     };
 
 
@@ -23,7 +33,7 @@ namespace tc {
         int col;
         int line;
         int type;
-        std::variant<std::monostate, std::string, int, double> value;
+        std::variant<std::monostate, std::string, int, double, bool> value;
     };
 
     class Lexer {

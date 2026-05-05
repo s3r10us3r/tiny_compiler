@@ -1,0 +1,8 @@
+let b: string[10] = "dupa";
+b[3] = "cipa";
+
+let i: int = 10;
+while i > 0 {
+    print b[i];
+    i = i + 1;
+};

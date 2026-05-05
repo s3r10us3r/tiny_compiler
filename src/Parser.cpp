@@ -20,6 +20,11 @@ std::shared_ptr<tc::TypeAst> tc::TypeAst::get_string() {
     return instance;
 }
 
+std::shared_ptr<tc::TypeAst> tc::TypeAst::get_bool() {
+    static auto instance = std::make_shared<tc::BoolTypeAst>();
+    return instance;
+}
+
 void tc::ProgramAst::add_stmt(std::unique_ptr<tc::StmtAst> stmt) {
     statements.push_back(std::move(stmt));
 }
@@ -46,6 +51,11 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_stmt() {
     else if (cur_tok.type == tok_id) {
         stmt = parse_assgn();
     }
+    else if (cur_tok.type == '{') {
+        stmt = parse_block();
+    } else if (cur_tok.type == tok_while) {
+        stmt = parse_while();
+    }
 
     if (stmt == nullptr) {
         report_error("Unrecognized statement.", cur_tok);
@@ -54,6 +64,41 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_stmt() {
     expect(';', "';' expected");
     advance();
     return stmt;
+}
+
+std::unique_ptr<tc::StmtAst> tc::Parser::parse_while() {
+    int line = cur_tok.line; int col = cur_tok.col;
+    advance(); 
+
+    auto condition = parse_expr(); 
+
+    if (cur_tok.type != '{') {
+        report_error("Expected '{' to start while loop body.", cur_tok);
+    }
+    
+    auto body = parse_block(); 
+
+    return std::make_unique<WhileStmtAst>(line, col, std::move(condition), std::move(body));
+}
+
+std::unique_ptr<tc::StmtAst> tc::Parser::parse_block() {
+    int line = cur_tok.line;
+    int col = cur_tok.col;
+
+    expect('{', "Expected '{' at the beginning of a block.");
+    advance(); 
+
+    std::unique_ptr<BlockAst> block = std::make_unique<BlockAst>(line, col);
+
+    while (cur_tok.type != '}' && cur_tok.type != tok_eof) {
+        auto stmt = parse_stmt();
+        block->push_stmt(std::move(stmt));
+    }
+    if (cur_tok.type == tok_eof) {
+        report_error("Unterminated block, expected '}'", cur_tok); // cur_tok zamiast token
+    }
+    advance(); 
+    return block;
 }
 
 std::unique_ptr<tc::StmtAst> tc::Parser::parse_var_decl() {
@@ -100,6 +145,53 @@ std::unique_ptr<tc::StmtAst> tc::Parser::parse_assgn() {
 
 std::unique_ptr<tc::ExprAst> tc::Parser::parse_expr() {
     int line = cur_tok.line; int col = cur_tok.col;
+    auto left = parse_logical_xor();
+    while (cur_tok.type == tok_or) {
+        int op = cur_tok.type; advance();
+        auto right = parse_logical_and();
+        left = std::make_unique<BinaryExprAst>(line, col, op, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<tc::ExprAst> tc::Parser::parse_logical_and() {
+    int line = cur_tok.line; int col = cur_tok.col;
+    auto left = parse_relational();
+    while (cur_tok.type == tok_and) {
+        int op = cur_tok.type; 
+        advance();
+        auto right = parse_relational();
+        left = std::make_unique<BinaryExprAst>(line, col, op, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<tc::ExprAst> tc::Parser::parse_logical_xor() {
+    int line = cur_tok.line; int col = cur_tok.col;
+    auto left = parse_logical_and(); 
+    while (cur_tok.type == tok_xor) {
+        int op = cur_tok.type; advance();
+        auto right = parse_logical_and();
+        left = std::make_unique<BinaryExprAst>(line, col, op, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<tc::ExprAst> tc::Parser::parse_relational() {
+    int line = cur_tok.line; int col = cur_tok.col;
+    auto left = parse_math_expr();
+    while (cur_tok.type == tok_eq || cur_tok.type == tok_neq || 
+           cur_tok.type == '<' || cur_tok.type == '>' || 
+           cur_tok.type == tok_less_or_eq || cur_tok.type == tok_more_or_eq) {
+        int op = cur_tok.type; advance();
+        auto right = parse_math_expr();
+        left = std::make_unique<BinaryExprAst>(line, col, op, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<tc::ExprAst> tc::Parser::parse_math_expr() {
+    int line = cur_tok.line; int col = cur_tok.col;
     auto left = parse_term();
     while (cur_tok.type == '+' || cur_tok.type == '-') {
         int op = cur_tok.type;
@@ -130,6 +222,14 @@ std::unique_ptr<tc::ExprAst> tc::Parser::parse_unary() {
         
         auto operand = parse_unary(); 
         return std::make_unique<UnaryExprAst>(line, col, '-', std::move(operand));
+    }
+    if (cur_tok.type == tok_not) {
+        int line = cur_tok.line; 
+        int col = cur_tok.col;
+        advance();
+
+        auto operand = parse_unary();
+        return std::make_unique<UnaryExprAst>(line, col, tok_not, std::move(operand));
     }
     
     return parse_factor();
@@ -162,6 +262,11 @@ std::unique_ptr<tc::ExprAst> tc::Parser::parse_factor() {
         expect(')', "Expected closing bracket.");
         advance();
         return expr;
+    }
+    if (cur_tok.type == tok_bool_lit) {
+        auto value = std::get<bool>(cur_tok.value);
+        advance();
+        return std::make_unique<BoolExprAst>(line, col, value);
     }
     report_error("Unexpected token at the end of expression.", cur_tok);
 }
@@ -250,6 +355,9 @@ std::shared_ptr<tc::TypeAst> tc::Parser::parse_base_type(std::string& type_str) 
     }
     if (type_str == "str") {
         return TypeAst::get_string();
+    }
+    if (type_str == "bool") {
+        return TypeAst::get_bool();
     }
     report_error("Unexpected type '" + type_str + "'", cur_tok);
 }
