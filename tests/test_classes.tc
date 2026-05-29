@@ -1,0 +1,58 @@
+// ============================================================
+// TEST: classes — structs with methods
+// Expected output: 3 4 6 8 5 1 0
+// ============================================================
+
+struct Point {
+    x: int;
+    y: int;
+
+    fn get_x(self) -> int {
+        return self.x;
+    };
+
+    fn get_y(self) -> int {
+        return self.y;
+    };
+
+    fn scale(self, factor: int) -> void {
+        self.x = self.x * factor;
+        self.y = self.y * factor;
+    };
+};
+
+struct Counter {
+    value: int;
+
+    fn increment(self) -> void {
+        self.value = self.value + 1;
+    };
+
+    fn reset(self) -> void {
+        self.value = 0;
+    };
+
+    fn is_positive(self) -> bool {
+        return self.value > 0;
+    };
+};
+
+// Test Point methods
+let p: Point = new Point { x = 3, y = 4 };
+print p.get_x();   // 3
+print p.get_y();   // 4
+
+p.scale(2);
+print p.get_x();   // 6
+print p.get_y();   // 8
+
+// Method call result used in expression
+let dist: int = p.get_x() + p.get_y() - 9;   // 6 + 8 - 9 = 5
+print dist;        // 5
+
+// Test Counter methods
+let c: Counter = new Counter { value = 0 };
+c.increment();
+print c.is_positive();   // 1 (true)
+c.reset();
+print c.is_positive();   // 0 (false)

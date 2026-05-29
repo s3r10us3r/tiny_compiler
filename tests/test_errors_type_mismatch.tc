@@ -1,0 +1,19 @@
+// ============================================================
+// TEST: variable declaration and assignment type mismatches
+//       TypeChecker collects all errors.
+//
+// Expected errors:
+//   "does not match declared type"   (init mismatch: float → int)
+//   "Type mismatch in assignment"    (assign int to float var)
+//   "Cannot declare a variable of type 'void'"
+// ============================================================
+
+// --- Init expression type mismatch ---
+let x: int = 3.14;          // ERROR: float does not match declared type int
+
+// --- Assignment type mismatch ---
+let y: float = 1.0;
+y = 5;                       // ERROR: cannot assign int to float
+
+// --- Variable of type void ---
+let z: void = 0;             // ERROR: cannot declare variable of type 'void'

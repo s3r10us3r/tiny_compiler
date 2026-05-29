@@ -1,0 +1,8 @@
+// ============================================================
+// TEST: reserved keyword used as function name — must FAIL
+// Expected error: "reserved keyword" (while used as fn name)
+// ============================================================
+
+fn while(x: int) -> int {
+    return x;
+};

@@ -1,0 +1,15 @@
+// ============================================================
+// TEST: scope errors — undeclared variable, duplicate variable
+//       TypeChecker collects all errors.
+//
+// Expected errors:
+//   "Undeclared variable"
+//   "already declared in this scope"
+// ============================================================
+
+// --- Using an undeclared variable ---
+let result: int = ghost;     // ERROR: 'ghost' is undeclared
+
+// --- Duplicate variable declaration in the same scope ---
+let count: int = 0;
+let count: int = 99;         // ERROR: 'count' already declared in this scope

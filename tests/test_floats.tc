@@ -1,0 +1,23 @@
+// ============================================================
+// TEST: float arithmetic, comparisons, functions
+// Expected output: 4.000000 3.750000 1.000000 1 5.000000
+// ============================================================
+
+let a: float = 1.5;
+let b: float = 2.5;
+
+print a + b;    // 4.000000
+print a * b;    // 3.750000
+print b - a;    // 1.000000
+
+// Float comparison produces bool
+if a < b {
+    print 1;    // 1
+};
+
+// Float-returning function
+fn avg(x: float, y: float) -> float {
+    return (x + y) / 2.0;
+};
+
+print avg(3.0, 7.0);   // 5.000000

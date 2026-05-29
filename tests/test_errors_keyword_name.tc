@@ -1,0 +1,17 @@
+// ============================================================
+// TEST: using reserved names for declarations — must FAIL
+//
+// Every declaration here tries to use a keyword or built-in
+// type name where an identifier is required. The compiler
+// must reject each one with a clear error message.
+//
+// Only one parse error is shown at a time (parser throws on
+// the first one), so this file only contains one bad name.
+// Separate files (below) cover other cases.
+//
+// Expected error: "built-in type name" (int used as struct name)
+// ============================================================
+
+struct int {
+    x: float;
+};

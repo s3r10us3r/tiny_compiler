@@ -6,7 +6,7 @@
 #include <string>
 
 tc::TokenData tc::Lexer::get_next_token() {
-    // whitespace 
+    // whitespace
     while (std::isspace(last_char)) {
         next_char();
     }
@@ -27,7 +27,7 @@ tc::TokenData tc::Lexer::get_next_token() {
             return keyword_opt.value();
 
         return {col, line, tok_id, id_str};
-    }    
+    }
 
     // literals
     if (std::isdigit(last_char)) {
@@ -39,12 +39,10 @@ tc::TokenData tc::Lexer::get_next_token() {
 
         while (std::isdigit(last_char) || last_char == '.') {
             num_str += (char)(last_char);
-            if (last_char == '.') {
-                if (is_float) {
-                    report_error("Unexpected character in number literal '.'");
-                }
+            if (last_char == '.' && is_float)
+                report_error("Unexpected character in number literal '.'");
+            if (last_char == '.')
                 is_float = true;
-            }
             next_char();
         }
 
@@ -123,6 +121,34 @@ tc::TokenData tc::Lexer::get_next_token() {
         return {col, line, '>', std::monostate()};
     }
 
+    // '/' handled separately to detect '//' line comments
+    if (last_char == '/') {
+        int line = curr_line;
+        int col  = curr_col;
+        next_char();
+        if (last_char == '/') {
+            // consume the rest of the line
+            while (last_char != '\n' && last_char != EOF && !input.eof()) {
+                next_char();
+            }
+            return get_next_token(); // skip to next real token
+        }
+        return {col, line, '/', std::monostate()};
+    }
+
+    // '-' handled separately to detect '->' arrow token
+    if (last_char == '-') {
+        int line = curr_line;
+        int col = curr_col;
+
+        next_char();
+        if (last_char == '>') {
+            next_char();
+            return {col, line, tok_arrow, std::monostate()};
+        }
+        return {col, line, '-', std::monostate()};
+    }
+
     if (last_char == EOF || input.eof()) {
         return {curr_col, curr_line, tok_eof, std::monostate()};
     }
@@ -162,19 +188,46 @@ std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int l
     if (keyword == "xor") {
         return { {col, line, tok_xor, std::monostate()} };
     }
+    if (keyword == "if") {
+        return { {col, line, tok_if, std::monostate()} };
+    }
+    if (keyword == "else") {
+        return { {col, line, tok_else, std::monostate()} };
+    }
+    if (keyword == "fn") {
+        return { {col, line, tok_fn, std::monostate()} };
+    }
+    if (keyword == "return") {
+        return { {col, line, tok_return, std::monostate()} };
+    }
+    if (keyword == "break") {
+        return { {col, line, tok_break, std::monostate()} };
+    }
+    if (keyword == "struct") {
+        return { {col, line, tok_struct, std::monostate()} };
+    }
+    if (keyword == "class") {
+        return { {col, line, tok_class, std::monostate()} };
+    }
+    if (keyword == "new") {
+        return { {col, line, tok_new, std::monostate()} };
+    }
 
     // builtin types
     if (keyword == "int") {
-        return { {col, line, tok_type, "int"} };
-    } 
+        return { {col, line, tok_type, std::string("int")} };
+    }
     if (keyword == "float") {
-        return { {col, line, tok_type, "float"} };
-    } 
+        return { {col, line, tok_type, std::string("float")} };
+    }
     if (keyword == "str") {
-        return { {col, line, tok_type, "str"} };
+        return { {col, line, tok_type, std::string("str")} };
     }
     if (keyword == "bool") {
-        return { {col, line, tok_type, "bool"} };
+        return { {col, line, tok_type, std::string("bool")} };
+    }
+    if (keyword == "void") {
+        return { {col, line, tok_type, std::string("void")} };
     }
 
     // values
@@ -190,7 +243,9 @@ std::optional<tc::TokenData> tc::Lexer::match_keyword(std::string keyword, int l
 
 
 bool tc::Lexer::is_known_single_char(int ch) {
-    std::string known_chars = "=+-*/();:][{}";
+    // Note: '-' is handled separately (to detect '->'), '=' is handled for '=='
+    // Note: '-' handled separately (->), '/' handled separately (//)
+    std::string known_chars = "=+*();:][{},.";
     return !(known_chars.find((char)ch) == std::string::npos);
 }
 

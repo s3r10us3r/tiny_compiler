@@ -1,0 +1,38 @@
+// ============================================================
+// TEST: variable scope
+// Expected output: 2  1  10  3  99
+// ============================================================
+
+// 1. Inner block shadows outer variable
+let x: int = 1;
+{
+    let x: int = 2;
+    print x;    // 2  (inner x)
+};
+print x;        // 1  (outer x restored)
+
+// 2. Function has its own scope — does not see outer 'x' by name collision
+fn get_ten() -> int {
+    let x: int = 10;
+    return x;
+};
+print get_ten();   // 10
+
+// 3. Block variable does not leak outside
+let counter: int = 3;
+{
+    let temp: int = 100;
+    counter = counter + 0;
+};
+print counter;  // 3  (temp is gone, counter unchanged)
+
+// 4. While-loop body scope: loop var is local
+let acc: int = 0;
+let i: int = 0;
+while i < 3 {
+    let step: int = 33;   // new 'step' each iteration
+    acc = acc + step;
+    i = i + 1;
+};
+// step is not accessible here — would be a type-checker error
+print acc;     // 99  (33 * 3)

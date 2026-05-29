@@ -1,0 +1,36 @@
+// ============================================================
+// TEST: structs — declaration, literal (new), field read, field write
+// Expected output: 3  4  10  4  1
+// ============================================================
+
+struct Point {
+    x: int;
+    y: int;
+};
+
+struct Rectangle {
+    width: int;
+    height: int;
+};
+
+fn area(w: int, h: int) -> int {
+    return w * h;
+};
+
+// 1. Create struct with 'new' and read fields
+let p: Point = new Point { x = 3, y = 4 };
+print p.x;    // 3
+print p.y;    // 4
+
+// 2. Assign to a struct field
+p.x = 10;
+print p.x;    // 10
+
+// 3. Struct field unchanged
+print p.y;    // 4
+
+// 4. Another struct, pass fields to a function
+let r: Rectangle = new Rectangle { width = 6, height = 7 };
+let a: int = area(r.width, r.height);
+let big: bool = a > 40;
+print big;    // 1 (42 > 40)

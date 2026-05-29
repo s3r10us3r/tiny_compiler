@@ -1,0 +1,10 @@
+// ============================================================
+// TEST: string literals — print literal, print via variable
+// Expected output: hello world tiny
+// ============================================================
+
+print "hello";
+print "world";
+
+let s: str = "tiny";
+print s;

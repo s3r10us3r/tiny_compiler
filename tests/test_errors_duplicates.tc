@@ -1,0 +1,31 @@
+// ============================================================
+// TEST: duplicate type, function, method, and field declarations
+//       All must produce errors; TypeChecker collects all of them.
+//
+// Expected errors:
+//   "Duplicate type declaration"
+//   "Duplicate function declaration"
+//   "Duplicate method"
+//   "Duplicate field"
+// ============================================================
+
+// --- Duplicate struct name ---
+struct Point { x: int; y: int; };
+struct Point { x: float; };          // ERROR: Point already defined
+
+// --- Duplicate function name ---
+fn add(a: int, b: int) -> int { return a + b; };
+fn add(x: int) -> int { return x; }; // ERROR: add already defined
+
+// --- Duplicate method in a struct ---
+struct Foo {
+    val: int;
+    fn get(self) -> int { return self.val; };
+    fn get(self) -> int { return 0; };   // ERROR: get already defined in Foo
+};
+
+// --- Duplicate field in a struct ---
+struct Bar {
+    x: int;
+    x: float;                           // ERROR: x already declared in Bar
+};

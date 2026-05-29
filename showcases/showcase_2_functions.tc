@@ -1,0 +1,46 @@
+// ═══════════════════════════════════════════════════════════════════
+// SHOWCASE 2 — Functions · Recursion · Forward References · Scope
+// Expected output: 55  3628800  8  21  0  99
+// ═══════════════════════════════════════════════════════════════════
+
+// Functions can be called BEFORE their declaration —
+// the compiler pre-registers all signatures in a first pass.
+
+print sum_to(10);    // 55        — recursive sum 1..10
+print fact(10);      // 3628800   — iterative factorial
+print fib(6);        // 8         — recursive Fibonacci
+print fib(8);        // 21
+
+// ── Scope isolation: local variable does not escape the function ──
+let n: int = 99;
+print is_even(n);    // 0  (99 is odd)
+print n;             // 99 — unchanged by the call
+
+// ── sum_to: recursive sum of 1..n ────────────────────────────────
+fn sum_to(n: int) -> int {
+    if (n <= 0) { return 0; };
+    return n + sum_to(n - 1);
+};
+
+// ── fact: iterative factorial — local variables + while ──────────
+fn fact(n: int) -> int {
+    let result: int = 1;
+    let i: int = 2;
+    while (i <= n) {
+        result = result * i;
+        i = i + 1;
+    };
+    return result;
+};
+
+// ── fib: recursive Fibonacci ─────────────────────────────────────
+fn fib(n: int) -> int {
+    if (n <= 1) { return n; };
+    return fib(n - 1) + fib(n - 2);
+};
+
+// ── is_even: bool-returning function ─────────────────────────────
+fn is_even(n: int) -> bool {
+    let rem: int = n - (n / 2) * 2;   // n mod 2
+    return rem == 0;
+};

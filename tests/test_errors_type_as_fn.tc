@@ -1,0 +1,8 @@
+// ============================================================
+// TEST: built-in type name used as a function name — must FAIL
+// Expected error: "built-in type name"
+// ============================================================
+
+fn bool(x: int) -> int {
+    return x;
+};

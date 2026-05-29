@@ -1,0 +1,8 @@
+// ============================================================
+// TEST: boolean literal used as a struct name — must FAIL
+// Expected error: "reserved literals"
+// ============================================================
+
+struct true {
+    x: int;
+};

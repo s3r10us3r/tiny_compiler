@@ -1,0 +1,6 @@
+// ============================================================
+// TEST: reserved keyword used as variable name — must FAIL
+// Expected error: "reserved keyword" (if used as variable name)
+// ============================================================
+
+let if: int = 5;

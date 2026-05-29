@@ -1,0 +1,8 @@
+// ============================================================
+// TEST: reserved keyword used as a parameter name — must FAIL
+// Expected error: "reserved keyword"
+// ============================================================
+
+fn add(return: int, b: int) -> int {
+    return b;
+};

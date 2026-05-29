@@ -9,11 +9,11 @@
 #include <memory>
 #include <stdexcept>
 
-#include "Parser.h"
+#include "Ast.h"
 
 namespace tc {
     struct VariableInfo {
-        llvm::AllocaInst* memory_location;
+        llvm::Value* memory_location; // AllocaInst* dla zmiennych, surowy wskaźnik dla 'self'
         std::shared_ptr<TypeAst> type;
     };
 

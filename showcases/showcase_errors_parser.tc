@@ -1,0 +1,28 @@
+// ═══════════════════════════════════════════════════════════════════
+// SHOWCASE — Parser Errors: Reserved Names
+//
+// The parser rejects reserved keywords and built-in type names
+// used as identifiers immediately, with a specific error message
+// that names the offending token and explains WHY it is forbidden.
+//
+// Because this is caught during parsing (before type-checking),
+// only the FIRST violation is reported — fix it and the next one
+// surfaces, keeping error messages focused.
+//
+// Uncomment exactly ONE block at a time to see each error.
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Currently active: built-in type name used as struct name ─────
+struct int {                 // ❌ 'int' is a built-in type name
+    x: float;
+};
+
+// ── Other examples (uncomment one at a time) ──────────────────────
+
+// fn while(x: int) -> int { return x; };   // ❌ 'while' is a reserved keyword
+
+// struct Foo { if: int; };                  // ❌ 'if' is a reserved keyword (field)
+
+// fn foo(return: int) -> int { return 0; }; // ❌ 'return' is a reserved keyword (param)
+
+// struct true { x: int; };                 // ❌ 'true' is a reserved literal

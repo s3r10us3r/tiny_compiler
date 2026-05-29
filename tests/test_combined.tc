@@ -1,0 +1,49 @@
+// ============================================================
+// TEST: combined — if, while, break, functions, scope, structs
+// Prime number finder with result struct
+// Expected output: 7  1  4  0  4
+// ============================================================
+
+struct Result {
+    value: int;
+    is_prime: bool;
+};
+
+fn is_prime(n: int) -> bool {
+    if n < 2 {
+        return false;
+    };
+    let i: int = 2;
+    while i * i <= n {
+        if n == (n / i) * i {   // n % i == 0 (integer division trick)
+            return false;
+        };
+        i = i + 1;
+    };
+    return true;
+};
+
+fn make_result(v: int, p: bool) -> Result {
+    return new Result { value = v, is_prime = p };
+};
+
+// Test n = 7 (prime)
+let r1: Result = make_result(7, is_prime(7));
+print r1.value;     // 7
+print r1.is_prime;  // 1
+
+// Test n = 4 (not prime)
+let r2: Result = make_result(4, is_prime(4));
+print r2.value;     // 4
+print r2.is_prime;  // 0
+
+// Count primes 2..10 using while
+let count: int = 0;
+let candidate: int = 2;
+while candidate <= 10 {
+    if is_prime(candidate) {
+        count = count + 1;
+    };
+    candidate = candidate + 1;
+};
+print count;   // 4  (primes: 2, 3, 5, 7)

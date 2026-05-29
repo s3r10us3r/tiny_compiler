@@ -1,0 +1,8 @@
+// ============================================================
+// TEST: reserved keyword used as a field name — must FAIL
+// Expected error: "reserved keyword"
+// ============================================================
+
+struct Foo {
+    while: int;    // ERROR: 'while' is a reserved keyword
+};

@@ -1,0 +1,35 @@
+// ============================================================
+// TEST: semantic error detection
+// This file should FAIL compilation with the listed errors.
+// Run: compiler test_errors.tc ; it must print errors and exit 1.
+//
+// Expected errors (in any order):
+//   - 'if' condition must be bool (got int)
+//   - 'break' outside loop
+//   - return type mismatch (bool vs int)
+//   - undefined function call
+//   - struct field missing in literal
+// ============================================================
+
+fn bad_return() -> int {
+    return true;    // ERROR: return bool from int function
+};
+
+fn valid_fn() -> void {
+    let x: int = 1;
+    break;          // ERROR: break outside loop
+};
+
+let cond: int = 1;
+if cond {           // ERROR: if condition must be bool, got int
+    print 0;
+};
+
+no_such_fn(1, 2);  // ERROR: undefined function
+
+struct Pair {
+    a: int;
+    b: int;
+};
+
+let p: Pair = new Pair { a = 1 };  // ERROR: missing field 'b'

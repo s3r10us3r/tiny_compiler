@@ -1,0 +1,31 @@
+// ============================================================
+// TEST: boolean operators — and, or, xor, not; compound; in while
+// Expected output: 1 0 1 0 0 1 0 1 1 3
+// ============================================================
+
+// Basic operator truth tables
+print true and true;    // 1
+print true and false;   // 0
+print false or true;    // 1
+print false or false;   // 0
+print true xor true;    // 0
+print true xor false;   // 1
+print not true;         // 0
+print not false;        // 1
+
+// Compound expression
+let a: bool = true;
+let b: bool = false;
+let c: bool = (a or b) and not b;   // (T or F) and not F = T and T = true
+print c;    // 1
+
+// Boolean condition controls loop exit
+let count: int = 0;
+let go: bool = true;
+while go and count < 5 {
+    count = count + 1;
+    if count == 3 {
+        go = false;
+    };
+};
+print count;   // 3

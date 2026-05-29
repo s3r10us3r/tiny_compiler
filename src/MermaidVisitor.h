@@ -18,20 +18,36 @@ namespace tc {
         MermaidVisitor() { ss << "graph TD\n"; }
         std::string get_code() const { return ss.str(); }
 
-        void visit(IntExprAst* node) override;
-        void visit(FloatExprAst* node) override;
-        void visit(StringExprAst* node) override;
-        void visit(BoolExprAst* node) override;
-        void visit(VariableExprAst* node) override;
-        void visit(ArrayAccessExprAst* node) override;
-        void visit(UnaryExprAst* node) override;
-        void visit(BinaryExprAst* node) override;
-        void visit(VarDeclStmtAst* node) override;
-        void visit(WhileStmtAst* node) override;
+        // Expressions
+        void visit(IntExprAst*          node) override;
+        void visit(FloatExprAst*         node) override;
+        void visit(StringExprAst*        node) override;
+        void visit(BoolExprAst*          node) override;
+        void visit(VariableExprAst*      node) override;
+        void visit(ArrayAccessExprAst*   node) override;
+        void visit(FieldAccessExprAst*   node) override;
+        void visit(UnaryExprAst*         node) override;
+        void visit(BinaryExprAst*        node) override;
+        void visit(FuncCallExprAst*      node) override;
+        void visit(StructLiteralExprAst* node) override;
+        void visit(MethodCallExprAst*    node) override;
+
+        // Statements
+        void visit(VarDeclStmtAst*    node) override;
         void visit(AssignmentStmtAst* node) override;
-        void visit(PrintStmtAst* node) override;
-        void visit(ReadStmtAst* node) override;
-        void visit(BlockAst* node) override;
+        void visit(PrintStmtAst*      node) override;
+        void visit(ReadStmtAst*       node) override;
+        void visit(BlockAst*          node) override;
+        void visit(WhileStmtAst*      node) override;
+        void visit(BreakStmtAst*      node) override;
+        void visit(IfStmtAst*         node) override;
+        void visit(ReturnStmtAst*     node) override;
+        void visit(FuncDeclStmtAst*   node) override;
+        void visit(MethodDeclStmtAst* node) override;
+        void visit(ExprStmtAst*       node) override;
+        void visit(StructDeclStmtAst* node) override;
+
+        // Program
         void visit(ProgramAst* node) override;
     };
 }

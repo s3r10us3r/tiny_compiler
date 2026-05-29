@@ -1,0 +1,23 @@
+// ============================================================
+// TEST: control-flow type and context errors
+//       TypeChecker collects all errors.
+//
+// Expected errors:
+//   "Condition in 'while' must be a boolean expression"
+//   "'return' used outside of a function"
+//   "Void function cannot return a value"
+// ============================================================
+
+// --- while condition is not a boolean ---
+let x: int = 5;
+while (x) {                  // ERROR: condition must be boolean
+    x = x - 1;
+};
+
+// --- return at top level (outside any function) ---
+return 0;                    // ERROR: 'return' used outside of a function
+
+// --- void function returning a value ---
+fn do_nothing() -> void {
+    return 42;               // ERROR: void function cannot return a value
+};

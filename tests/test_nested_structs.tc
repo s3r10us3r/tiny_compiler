@@ -1,0 +1,35 @@
+// ============================================================
+// TEST: nested structs, class keyword, struct-value copy semantics
+// Expected output: 1 6 3 10 12 1
+// ============================================================
+
+// 'class' and 'struct' are identical keywords
+class Point {
+    x: int;
+    y: int;
+
+    fn sum(self) -> int {
+        return self.x + self.y;
+    };
+};
+
+class Segment {
+    a: Point;
+    b: Point;
+};
+
+let p1: Point   = new Point { x = 1, y = 2 };
+let p2: Point   = new Point { x = 4, y = 6 };
+let seg: Segment = new Segment { a = p1, b = p2 };
+
+print seg.a.x;    // 1
+print seg.b.y;    // 6
+
+print p1.sum();   // 1 + 2 = 3
+print p2.sum();   // 4 + 6 = 10
+
+// Structs are assigned by value — seg.a is a COPY of p1 at assignment time.
+// Mutating p1 afterwards does NOT affect seg.a.
+p1.x = 10;
+print p1.sum();   // 10 + 2 = 12
+print seg.a.x;    // still 1 (seg.a holds the original copy)

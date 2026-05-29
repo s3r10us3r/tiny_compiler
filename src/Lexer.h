@@ -26,6 +26,15 @@ namespace tc {
         tok_neq = -17,
         tok_while = -18,
         tok_xor = -19,
+        tok_if     = -20,
+        tok_else   = -21,
+        tok_fn     = -22,
+        tok_return = -23,
+        tok_arrow  = -24,  // ->
+        tok_break  = -25,
+        tok_struct = -26,
+        tok_new    = -27,
+        tok_class  = -28,
     };
 
 

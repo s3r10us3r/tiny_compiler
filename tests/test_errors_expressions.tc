@@ -1,0 +1,38 @@
+// ============================================================
+// TEST: expression-level type errors in unary and binary ops
+//       TypeChecker collects all errors.
+//
+// Expected errors:
+//   "Operator 'not' requires a boolean operand"
+//   "Unary minus requires a numeric operand"
+//   "Mathematical operations require numeric types"
+//   "Mismatched types in binary expression"
+//   "Logical operators.*require boolean operands"
+//   "String operations are not supported"
+// ============================================================
+
+// --- 'not' on non-bool ---
+let a: int = 5;
+let b: bool = not a;         // ERROR: 'not' requires boolean
+
+// --- Unary minus on bool ---
+let c: bool = true;
+let d: bool = -c;            // ERROR: unary minus requires numeric
+
+// --- Arithmetic on bool ---
+let e: bool = true;
+let f: bool = false;
+let g: bool = e + f;         // ERROR: mathematical ops require numeric types
+
+// --- Mismatched types in binary (int vs float) ---
+let h: bool = 5 == 3.14;    // ERROR: mismatched types in binary expression
+
+// --- Logical operator on non-bool (int and int) ---
+let i: int = 1;
+let j: int = 2;
+let k: bool = i and j;      // ERROR: logical operators require boolean operands
+
+// --- String arithmetic ---
+let s1: str = "hello";
+let s2: str = "world";
+let s3: str = s1 + s2;      // ERROR: string operations are not supported

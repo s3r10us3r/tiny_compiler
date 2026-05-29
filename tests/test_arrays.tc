@@ -1,0 +1,31 @@
+// ============================================================
+// TEST: arrays — declaration, indexing, write, loop fill, sum
+// Expected output: 10 40 100 16
+// ============================================================
+
+// 1. Declare, write individual elements, read back
+let a: int[4] = 0;
+a[0] = 10;
+a[1] = 20;
+a[2] = 30;
+a[3] = 40;
+print a[0];    // 10
+print a[3];    // 40
+
+// 2. Sum all elements via while loop
+let sum: int = 0;
+let i: int = 0;
+while i < 4 {
+    sum = sum + a[i];
+    i = i + 1;
+};
+print sum;     // 10 + 20 + 30 + 40 = 100
+
+// 3. Fill a second array with squares (0,1,4,9,16)
+let b: int[5] = 0;
+let j: int = 0;
+while j < 5 {
+    b[j] = j * j;
+    j = j + 1;
+};
+print b[4];    // 4*4 = 16

@@ -1,0 +1,55 @@
+// ═══════════════════════════════════════════════════════════════════
+// SHOWCASE 1 — Primitives · Expressions · Control Flow · Arrays
+// Expected output: 42  3.140000  1  hello  0  1  1  1  0  1  4  55
+// ═══════════════════════════════════════════════════════════════════
+
+// ── All four primitive types ─────────────────────────────────────
+let n:    int   = 42;
+let pi:   float = 3.14;
+let flag: bool  = true;
+let lang: str   = "hello";
+
+print n;      // 42
+print pi;     // 3.140000
+print flag;   // 1  (true)
+print lang;   // hello
+
+// ── Boolean logic ─────────────────────────────────────────────────
+print (flag and false);    // 0
+print (flag or  false);    // 1
+print not false;           // 1
+
+// ── Relational operators ──────────────────────────────────────────
+print (n > 40);    // 1
+print (n != 42);   // 0
+
+// ── if / else ─────────────────────────────────────────────────────
+if (n == 42) {
+    print 1;   // 1  ← branch taken
+} else {
+    print 0;
+};
+
+// ── while with early break ────────────────────────────────────────
+let i: int = 0;
+while (i < 10) {
+    if (i == 4) { break; };   // stop before reaching 10
+    i = i + 1;
+};
+print i;   // 4
+
+// ── Arrays: fill with squares, then sum ──────────────────────────
+let arr: int[10] = 0;
+let k: int = 0;
+while (k < 10) {
+    arr[k] = k + 1;    // arr = [1, 2, 3, ..., 10]
+    k = k + 1;
+};
+
+let sum: int = 0;
+let j: int = 0;
+while (j < 10) {
+    sum = sum + arr[j];
+    j = j + 1;
+};
+print sum;   // 55  (1+2+…+10)

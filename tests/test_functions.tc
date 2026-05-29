@@ -1,0 +1,40 @@
+// ============================================================
+// TEST: functions — declaration, call, return, void, recursion
+// Expected output: 7  1  0  120
+// ============================================================
+
+// 1. Simple int-returning function
+fn add(a: int, b: int) -> int {
+    return a + b;
+};
+
+// 2. Bool-returning function
+fn is_positive(n: int) -> bool {
+    return n > 0;
+};
+
+// 3. Void function (side-effect only)
+fn print_sum(a: int, b: int) -> void {
+    let s: int = add(a, b);
+    print s;
+};
+
+// 4. Recursive function — factorial
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    };
+    return n * factorial(n - 1);
+};
+
+// --- calls ---
+print_sum(3, 4);        // prints 7
+
+let pos: bool = is_positive(10);
+print pos;              // prints 1 (true)
+
+let neg: bool = is_positive(-5);
+print neg;              // prints 0 (false)
+
+let f5: int = factorial(5);
+print f5;               // prints 120
