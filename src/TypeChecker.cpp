@@ -47,6 +47,37 @@ void tc::TypeChecker::visit(ProgramAst* node) {
         }
     }
 
+    // Pass 1.5: register top-level variable declarations so functions can reference them.
+    for (auto& stmt : node->statements) {
+        auto* vd = dynamic_cast<VarDeclStmtAst*>(stmt.get());
+        if (!vd) continue;
+
+        if (global_vars.count(vd->name)) {
+            push_error(vd->line, vd->col,
+                "Variable '" + vd->name + "' is already declared in this scope.");
+            continue;
+        }
+        global_vars[vd->name] = vd->type;
+
+        if (vd->type->to_string() == "void") {
+            push_error(vd->line, vd->col, "Cannot declare a variable of type 'void'.");
+            continue;
+        }
+
+        auto expr_type = get_type(vd->init_expr.get());
+        bool types_match = is_same_type(vd->type.get(), expr_type.get());
+        if (!types_match) {
+            auto arr = std::dynamic_pointer_cast<ArrayTypeAst>(vd->type);
+            if (arr && is_same_type(get_deep_base_type(vd->type.get()), expr_type.get()))
+                types_match = true;
+        }
+        if (!types_match) {
+            push_error(vd->line, vd->col,
+                "Initialisation type '" + expr_type->to_string() +
+                "' does not match declared type '" + vd->type->to_string() + "'.");
+        }
+    }
+
     // Pass 2: full type-checking
     for (auto& stmt : node->statements) {
         stmt->accept(*this);
@@ -72,6 +103,11 @@ void tc::TypeChecker::visit(VariableExprAst* node) {
             last_type = scopes[i][node->name];
             return;
         }
+    }
+    auto git = global_vars.find(node->name);
+    if (git != global_vars.end()) {
+        last_type = git->second;
+        return;
     }
     push_error(node->line, node->col, "Undeclared variable: '" + node->name + "'");
     last_type = TypeAst::get_int(); // fallback to avoid cascade errors
@@ -271,6 +307,9 @@ void tc::TypeChecker::visit(StructLiteralExprAst* node) {
 // -------------------------------------------------------------------------
 
 void tc::TypeChecker::visit(VarDeclStmtAst* node) {
+    // Top-level globals are fully validated in Pass 1.5; skip them here.
+    if (global_vars.count(node->name) && scopes.size() == 1) return;
+
     if (node->type->to_string() == "void") {
         push_error(node->line, node->col, "Cannot declare a variable of type 'void'.");
         return;

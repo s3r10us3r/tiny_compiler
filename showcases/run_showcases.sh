@@ -54,6 +54,7 @@ run_error() {
 run_feature showcase_1_basics.tc
 run_feature showcase_2_functions.tc
 run_feature showcase_3_oop.tc
+run_feature showcase_4_globals.tc
 
 # ── Error showcases ─────────────────────────────────────────────────
 run_error showcase_errors_parser.tc

@@ -29,6 +29,7 @@ namespace tc {
             std::unique_ptr<llvm::Module> module;
 
             std::vector<std::unordered_map<std::string, VariableInfo>> scopes;
+            std::unordered_map<std::string, VariableInfo> globals;
 
             CodegenContext() {
                 llvm_ctx = std::make_unique<llvm::LLVMContext>();
@@ -42,17 +43,27 @@ namespace tc {
                 llvm::AllocaInst* alloc = builder->CreateAlloca(llvm_type, nullptr, name);
                 scopes.back()[name] = {alloc, ast_type};
                 return alloc;
-        }
+            }
+
+            llvm::GlobalVariable* create_global(const std::string& name, llvm::Type* llvm_type, std::shared_ptr<tc::TypeAst> ast_type) {
+                auto* gvar = new llvm::GlobalVariable(
+                    *module, llvm_type, false,
+                    llvm::GlobalValue::InternalLinkage,
+                    llvm::Constant::getNullValue(llvm_type),
+                    name);
+                globals[name] = {gvar, ast_type};
+                return gvar;
+            }
 
         VariableInfo* get_variable(const std::string& name) {
-            // Używamy rbegin() i rend(), żeby iterować od końca do początku
             for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
                 auto found = it->find(name);
-                if (found != it->end()) {
-                    // Zwracamy adres z prawdziwej mapy z wnętrza wektora
+                if (found != it->end())
                     return &found->second;
-                }
             }
+            auto git = globals.find(name);
+            if (git != globals.end())
+                return &git->second;
             return nullptr;
         }
 

@@ -1,0 +1,62 @@
+// ═══════════════════════════════════════════════════════════════════
+// SHOWCASE 4 — Global Variables · Shared State · Forward References
+// Expected output: 0  3  6  10  30  99
+// ═══════════════════════════════════════════════════════════════════
+
+// Global variables are visible to every function in the program,
+// regardless of declaration order.
+
+// ── Shared mutable counter ───────────────────────────────────────
+
+let hits: int = 0;
+
+fn record_hit() -> void {
+    hits = hits + 1;
+};
+
+print hits;       // 0  — initial value
+
+record_hit();
+record_hit();
+record_hit();
+print hits;       // 3  — mutated by function calls
+
+hits = hits * 2;
+print hits;       // 6  — mutated directly from top level
+
+// ── Forward reference: function uses a global declared AFTER it ──
+
+fn scaled() -> int {
+    return multiplier * base_value;   // both declared below
+};
+
+let base_value: int = 2;
+let multiplier: int = 5;
+
+print scaled();   // 10  (2 * 5)
+
+// ── Functions can both read and write the same global ────────────
+
+let total: int = 0;
+
+fn add(n: int) -> void {
+    total = total + n;
+};
+
+add(10);
+add(8);
+add(7);
+add(5);
+print total;      // 30
+
+// ── Local variable shadows global without affecting it ───────────
+
+let score: int = 99;
+
+fn peek_score() -> int {
+    let score: int = 0;   // local shadow — does not touch the global
+    return score;
+};
+
+peek_score();     // discarded — global 'score' is unchanged
+print score;      // 99

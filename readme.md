@@ -20,7 +20,7 @@
 
 *tiny* jest statycznie typowanym, kompilowanym językiem programowania ogólnego przeznaczenia. Kompilator przetwarza plik źródłowy w trzech fazach: analizy leksykalnej, analizy składniowej oraz generowania kodu pośredniego LLVM IR, który następnie jest kompilowany przez `clang` do natywnego kodu maszynowego.
 
-Plik źródłowy składa się z dowolnie przeplatanych deklaracji funkcji, deklaracji typów strukturalnych oraz instrukcji tworzących ciało programu głównego. Kolejność deklaracji nie ma znaczenia — kompilator wykonuje wstępną rejestrację wszystkich nazw przed właściwym sprawdzaniem typów i generowaniem kodu.
+Plik źródłowy składa się z dowolnie przeplatanych deklaracji funkcji, deklaracji typów strukturalnych, deklaracji zmiennych globalnych oraz instrukcji tworzących ciało programu głównego. Kolejność deklaracji nie ma znaczenia — kompilator rejestruje wszystkie sygnatury funkcji, typy strukturalne i zmienne globalne przed właściwym sprawdzaniem typów i generowaniem kodu.
 
 ---
 
@@ -79,15 +79,15 @@ Nazwy `int`, `float`, `bool`, `str`, `void` są zarezerwowane jako nazwy typów 
 ### 2.6 Operatory i separatory
 
 ```
-==  !=  <=  >=  <  >       — porównanie
+==  !=  <=  >=  <  >        — porównanie
 =                           — przypisanie
-+  -  *  /                 — arytmetyczne
++  -  *  /                  — arytmetyczne
 ->                          — typ zwracany funkcji / metody
 .                           — dostęp do pola / wywołanie metody
 ,                           — separator parametrów i argumentów
 :                           — adnotacja typu
 ;                           — zakończenie instrukcji
-( )  [ ]  { }              — nawiasy
+( )  [ ]  { }               — nawiasy
 ```
 
 ---
@@ -98,7 +98,7 @@ Nazwy `int`, `float`, `bool`, `str`, `void` są zarezerwowane jako nazwy typów 
 
 | Typ | Opis | Przykład literału |
 |---|---|---|
-| `int` | 64-bitowa liczba całkowita ze znakiem | `42` |
+| `int` | 32-bitowa liczba całkowita ze znakiem | `42` |
 | `float` | 64-bitowa liczba zmiennoprzecinkowa (IEEE 754) | `3.14` |
 | `bool` | wartość logiczna | `true`, `false` |
 | `str` | łańcuch znaków | `"hello"` |
@@ -140,7 +140,47 @@ let msg: str = "witaj";
 let buf: int[5] = 0;      // inicjalizacja skalarem — wszystkie elementy = 0
 ```
 
-### 4.2 Przypisanie
+### 4.2 Zmienne globalne
+
+Zmienne zadeklarowane na poziomie programu głównego (poza blokiem funkcji lub struktury) są *globalne* — widoczne we wszystkich funkcjach zadeklarowanych w pliku, niezależnie od kolejności deklaracji.
+
+```
+let licznik: int = 0;
+
+fn inkrementuj() -> void {
+    licznik = licznik + 1;
+};
+
+inkrementuj();
+print licznik;   // 1
+```
+
+Funkcja może być zadeklarowana przed zmienną globalną, którą odczytuje lub zapisuje:
+
+```
+fn podwoj() -> int {
+    return baza * 2;   // 'baza' zadeklarowana poniżej
+};
+
+let baza: int = 5;
+print podwoj();        // 10
+```
+
+Zmienna lokalna o tej samej nazwie co globalna przesłania ją wewnątrz swojego zasięgu bez modyfikowania wartości globalnej:
+
+```
+let x: int = 10;
+
+fn foo() -> int {
+    let x: int = 99;   // lokalna kopia — nie dotyka globalnego x
+    return x;
+};
+
+print foo();   // 99
+print x;       // 10
+```
+
+### 4.3 Przypisanie
 
 Istniejącej zmiennej, elementowi tablicy lub polu struktury można przypisać nową wartość. Typy muszą być zgodne.
 
@@ -186,7 +226,7 @@ let d: bool = not false;         // true
 
 ### 5.4 Operatory porównania
 
-`==`, `!=`, `<`, `>`, `<=`, `>=` porównują dwa operandy tego samego typu numerycznego i zwracają `bool`.
+`==`, `!=`, `<`, `>`, `<=`, `>=` porównują dwa operandy tego samego typu i zwracają `bool`. Operatory `<`, `>`, `<=`, `>=` są zdefiniowane wyłącznie dla typów numerycznych (`int`, `float`).
 
 ### 5.5 Jednoargumentowy minus
 
@@ -245,28 +285,36 @@ Wczytuje wartość ze standardowego wejścia i zapisuje ją do podanej zmiennej 
 ### 6.3 Instrukcja warunkowa
 
 ```
-if (warunek) {
+if warunek {
     ...
 };
 
-if (warunek) {
+if warunek {
+    ...
+} else {
+    ...
+};
+
+if warunek1 {
+    ...
+} else if warunek2 {
     ...
 } else {
     ...
 };
 ```
 
-Warunek musi być wyrażeniem typu `bool`.
+Warunek musi być wyrażeniem typu `bool`. Nawiasy wokół warunku są opcjonalne — `if (n > 0)` i `if n > 0` są równoważne.
 
 ### 6.4 Pętla `while`
 
 ```
-while (warunek) {
+while warunek {
     ...
 };
 ```
 
-Warunek musi być wyrażeniem typu `bool`. Pętla wykonuje się tak długo, jak warunek jest prawdziwy.
+Warunek musi być wyrażeniem typu `bool`. Nawiasy wokół warunku są opcjonalne. Pętla wykonuje się tak długo, jak warunek jest prawdziwy.
 
 ### 6.5 Przerwanie pętli `break`
 
@@ -325,7 +373,7 @@ fn fib(n: int) -> int {
 
 ### 7.4 Wyprzedzające odwołania
 
-Funkcje i typy strukturalne mogą być używane przed ich deklaracją w pliku źródłowym. Kompilator rejestruje wszystkie sygnatury w pierwszym przebiegu, zanim przystąpi do sprawdzania typów i generowania kodu.
+Funkcje, typy strukturalne i zmienne globalne mogą być używane przed ich deklaracją w pliku źródłowym. Kompilator rejestruje wszystkie sygnatury i globale w pierwszych przebiegach, zanim przystąpi do sprawdzania typów i generowania kodu.
 
 ```
 print suma(10);        // wywołanie przed deklaracją
@@ -334,6 +382,15 @@ fn suma(n: int) -> int {
     if (n <= 0) { return 0; };
     return n + suma(n - 1);
 };
+```
+
+```
+fn skaluj(n: int) -> int {
+    return wspolczynnik * n;   // globalna 'wspolczynnik' zadeklarowana poniżej
+};
+
+let wspolczynnik: int = 3;
+print skaluj(7);               // 21
 ```
 
 ### 7.5 Zasięg parametrów
@@ -363,7 +420,7 @@ Pola i metody mogą być deklarowane w dowolnej kolejności wewnątrz bloku stru
 
 ### 8.2 Parametr `self`
 
-Pierwszy parametr metody może być nazwany `self` bez adnotacji typu — kompilator automatycznie nadaje mu typ wskaźnikowy na otaczającą strukturę. Dzięki temu mutacje pól przez `self` są widoczne po stronie wywołującego.
+Każda metoda musi mieć `self` jako pierwszy parametr, bez adnotacji typu — kompilator automatycznie nadaje mu typ wskaźnikowy na otaczającą strukturę. Dzięki temu mutacje pól przez `self` są widoczne po stronie wywołującego.
 
 ```
 struct Licznik {
@@ -431,70 +488,70 @@ Język stosuje statyczne zasięgi blokowe.
 
 - Każdy blok `{ }` tworzy nowy zasięg. Zmienne zadeklarowane wewnątrz bloku nie są widoczne poza nim.
 - Parametry funkcji tworzą zasięg otaczający zasięg ciała funkcji.
-- Zmienne lokalne przesłaniają zewnętrzne zmienne o tej samej nazwie.
-- Deklaracje funkcji i struktur są widoczne w całym pliku źródłowym niezależnie od miejsca deklaracji.
+- Zmienne lokalne przesłaniają zewnętrzne zmienne o tej samej nazwie (w tym globalne).
+- Deklaracje funkcji, struktur i zmienne globalne są widoczne w całym pliku źródłowym niezależnie od miejsca deklaracji.
 
 ---
 
 ## 10. Sprawdzanie typów
 
-Sprawdzanie typów odbywa się po analizie składniowej. Kompilator zbiera wszystkie błędy semantyczne w jednym przebiegu i wypisuje je razem, nie przerywając analizy przy pierwszym błędzie.
+Sprawdzanie typów odbywa się po analizie składniowej. Kompilator zbiera wszystkie błędy semantyczne w jednym przebiegu i wypisuje je razem, nie przerywając analizy przy pierwszym błędzie. Komunikaty błędów są w języku angielskim.
 
 ### 10.1 Wykrywane błędy semantyczne
 
-| Kategoria | Przykład |
+Komunikaty błędów są w języku angielskim. `'...'` oznacza nazwę lub typ wstawiony dynamicznie, `N`/`M` — liczby.
+
+| Komunikat | Sytuacja |
 |---|---|
 | **Zmienne** | |
-| Niezgodność typów w deklaracji | `let x: int = 3.14;` |
-| Niezgodność typów w przypisaniu | `let y: float = 1.0; y = 5;` |
-| Typ `void` jako typ zmiennej | `let z: void = 0;` |
-| Niezadeklarowana zmienna | `let r: int = ghost;` |
-| Ponowna deklaracja w tym samym zasięgu | `let x: int = 1; let x: int = 2;` |
+| `Undeclared variable: '...'` | użycie niezadeklarowanej zmiennej |
+| `Variable '...' is already declared in this scope.` | ponowna deklaracja w tym samym zasięgu |
+| `Cannot declare a variable of type 'void'.` | `let x: void = ...` |
+| `Initialisation type '...' does not match declared type '...'` | `let x: int = 3.14` |
+| `Type mismatch in assignment: cannot assign '...' to '...'` | `y = 5` gdy `y: float` |
 | **Wyrażenia** | |
-| Operator `not` na nie-`bool` | `not 5` |
-| Jednoargumentowy minus na nie-numerycznym | `-true` |
-| Niezgodne typy w wyrażeniu binarnym | `5 == 3.14` |
-| Operacje arytmetyczne na `bool` | `true + false` |
-| Operatory logiczne na nie-`bool` | `1 and 2` |
-| Użycie łańcucha jako operandu operatora | `"a" + "b"` |
+| `Operator 'not' requires a boolean operand.` | `not 5` |
+| `Unary minus requires a numeric operand (int or float).` | `-true` |
+| `String operations are not supported.` | `"a" + "b"` |
+| `Logical operators 'and', 'or', 'xor' require boolean operands.` | `1 and 2` |
+| `Mismatched types in binary expression.` | `5 == 3.14` |
+| `Mathematical operations require numeric types, but got 'bool'.` | `true + false` |
 | **Tablice** | |
-| Indeksowanie nie-tablicy | `let x: int = 5; x[0]` |
-| Indeks tablicy nie jest `int` | `arr[3.14]` |
+| `Cannot index into a non-array type ('...')` | `x[0]` gdy `x: int` |
+| `Array index must be an integer, but got '...'` | `arr[3.14]` |
 | **Dostęp do pól** | |
-| Dostęp do pola nie-struktury | `let n: int = 5; n.x` |
-| Nieznana nazwa struktury (dostęp do pola) | zmienna o typie niezdefiniowanej struktury |
-| Nieistniejące pole struktury | `punkt.z` gdy `Punkt` ma tylko `x` i `y` |
+| `Cannot access field of non-struct type '...'` | `n.x` gdy `n: int` |
+| `Unknown struct type: '...'` | zmienna o typie niezdefiniowanej struktury |
+| `Struct '...' has no field '...'` | `p.z` gdy `Punkt` nie ma pola `z` |
 | **Funkcje** | |
-| Niezdefiniowana funkcja | `foo()` bez deklaracji `fn foo` |
-| Zła liczba argumentów funkcji | `add(1)` gdy `fn add(a: int, b: int)` |
-| Zły typ argumentu funkcji | `add(1, 3.14)` gdy oba parametry to `int` |
-| Brak wartości zwracanej w funkcji innej niż `void` | samo `return;` w `fn f() -> int` |
-| Niezgodność typu zwracanego | `return 3.14;` w funkcji `-> int` |
-| Funkcja `void` zwraca wartość | `return 42;` w funkcji `-> void` |
-| Wywołanie `return` poza funkcją | `return 0;` na poziomie programu |
+| `Undefined function: '...'` | wywołanie niezadeklarowanej funkcji |
+| `Function '...' expects N argument(s), got M.` | zła liczba argumentów |
+| `Argument N type mismatch in call to '...': expected '...' but got '...'` | zły typ argumentu |
+| `'return' used outside of a function.` | `return` na poziomie programu |
+| `Function must return a value of type '...'` | `return;` w funkcji zwracającej wartość |
+| `Void function cannot return a value.` | `return 42;` w `-> void` |
+| `Return type mismatch: expected '...' but got '...'` | `return 3.14;` w `-> int` |
 | **Metody** | |
-| Wywołanie metody na nie-strukturze | `let n: int = 5; n.foo()` |
-| Wywołanie metody na strukturze bez metod | `plain.foo()` gdy typ nie ma żadnej metody |
-| Nieistniejąca metoda | `obiekt.nieistnieje()` |
-| Zła liczba argumentów metody | `c.set()` gdy `fn set(self, v: int)` |
-| Zły typ argumentu metody | `c.set(3.14)` gdy parametr to `int` |
+| `Method call on non-struct type '...'` | `n.foo()` gdy `n: int` |
+| `Struct '...' has no methods.` | wywołanie metody na typie bez metod |
+| `Struct '...' has no method '...'` | wywołanie nieistniejącej metody |
+| `Method '...' expects N argument(s), got M.` | zła liczba argumentów metody |
 | **Literały struktur** | |
-| Nieznany typ struktury w literale | `new Nieznany { x = 1 }` |
-| Brak pola w literale struktury | pominięcie wymaganego pola |
-| Niezgodność typu pola w literale struktury | `new Pkt { x = 3.14 }` gdy `x: int` |
-| **Instrukcja `read`** | |
-| Wczytywanie bezpośrednio do tablicy | `read arr` gdzie `arr: int[5]` |
-| Cel `read` nie jest zmienną ani elementem tablicy | `read 5` |
-| **Przepływ sterowania** | |
-| Warunek `if` nie jest `bool` | `if (5)` |
-| Warunek `while` nie jest `bool` | `while (n)` gdzie `n: int` |
-| `break` poza pętlą | `break;` na poziomie programu |
+| `Unknown struct type: '...'` | `new Nieznany { ... }` |
+| `Missing field '...' in struct literal '...'` | pominięcie wymaganego pola |
+| `Field '...' type mismatch in struct literal '...': expected '...' but got '...'` | zły typ pola |
+| **Sterowanie i wczytywanie** | |
+| `Condition in 'if' must be a boolean expression.` | `if 5 { ... }` |
+| `Condition in 'while' must be a boolean expression.` | `while n { ... }` gdy `n: int` |
+| `'break' used outside of a loop.` | `break;` poza pętlą |
+| `Cannot read directly into an array type.` | `read arr` gdy `arr: int[5]` |
+| `Target of 'read' must be a variable or array element.` | `read 5` |
 | **Duplikaty** | |
-| Zduplikowana nazwa struktury lub klasy | dwie deklaracje `struct Point` |
-| Zduplikowana nazwa funkcji | dwie deklaracje `fn add` |
-| Zduplikowane pole w strukturze | `x: int; x: float;` w jednej strukturze |
-| Zduplikowana metoda w strukturze | dwie deklaracje `fn get(self)` |
-| Pole struktury o nieznanym typie strukturalnym | `a: NieznanyTyp;` w deklaracji pola |
+| `Duplicate type declaration: '...' is already defined.` | dwie deklaracje `struct Point` |
+| `Duplicate function declaration: '...' is already defined.` | dwie deklaracje `fn add` |
+| `Duplicate field '...' in type '...'` | `x: int; x: float;` w jednej strukturze |
+| `Duplicate method '...' in type '...': already defined.` | dwie deklaracje `fn get(self)` |
+| `Field '...' has unknown struct type '...'` | pole o niezdefiniowanym typie strukturalnym |
 
 ### 10.2 Błędy parsera
 
@@ -584,14 +641,14 @@ stmt => var_decl SC
 
 block => LC stmt* RC
 
-type => BUILT_IN ( LS INT_LIT RS )*
+type => BUILT_IN ( LS INT_LIT RS )?
       | ID
 
 var_decl    => LET ID CL type EQ expr
 print_stmt  => PRINT expr
 read_stmt   => READ postfix
-if_stmt     => IF LB expr RB block ( ELSE block )?
-while_stmt  => WHILE LB expr RB block
+if_stmt     => IF expr block ( ELSE ( if_stmt | block ) )?
+while_stmt  => WHILE expr block
 return_stmt => RETURN expr?
 
 assgn_or_call => postfix ( EQ expr )?
@@ -606,7 +663,6 @@ field_decl    => ID CL type SC
 method_decl   => FN ID LB method_params RB ARROW type block SC
 
 method_params => "self" ( COMMA param )*
-               | param_list
 
 struct_lit      => NEW ID LC field_init_list? RC
 field_init_list => field_init ( COMMA field_init )*

@@ -9,10 +9,18 @@
 
 
 void tc::LLVMVisitor::visit(tc::ProgramAst* node) {
-    // Pass 1: create all struct LLVM types (so methods and functions can reference them).
+    // Pass 1: create all struct LLVM types (so globals and functions can reference them).
     for (auto& stmt : node->statements) {
         if (dynamic_cast<tc::StructDeclStmtAst*>(stmt.get())) {
             stmt->accept(*this); // creates struct type + registers field defs
+        }
+    }
+
+    // Pass 1.5: create LLVM global variables for all top-level let declarations so
+    //           functions compiled in Pass 2 can reference them.
+    for (auto& stmt : node->statements) {
+        if (auto* vd = dynamic_cast<tc::VarDeclStmtAst*>(stmt.get())) {
+            codegen_context.create_global(vd->name, get_llvm_type(vd->type.get()), vd->type);
         }
     }
 
@@ -238,14 +246,26 @@ void tc::LLVMVisitor::visit(tc::BlockAst* node) {
 
 void tc::LLVMVisitor::visit(tc::VarDeclStmtAst* node) {
     auto* llvm_type = get_llvm_type(node->type.get());
-    auto* alloca    = codegen_context.create_variable(node->name, llvm_type, node->type);
     auto* init_val  = get_value(node->init_expr.get());
+    bool is_array   = dynamic_cast<tc::ArrayTypeAst*>(node->type.get()) != nullptr;
 
-    if (!dynamic_cast<tc::ArrayTypeAst*>(node->type.get())) {
-        codegen_context.builder->CreateStore(init_val, alloca);
+    // Top-level declarations were pre-registered as LLVM globals in Pass 1.5.
+    // scopes.size() == 1 means we're at the true top level of main (not inside a block).
+    if (codegen_context.globals.count(node->name) && codegen_context.scopes.size() == 1) {
+        auto* gvar = codegen_context.globals[node->name].memory_location;
+        if (!is_array) {
+            codegen_context.builder->CreateStore(init_val, gvar);
+            return;
+        }
+        emit_array_init(gvar, llvm_type, init_val, count_array_elements(node->type.get()));
         return;
     }
 
+    auto* alloca = codegen_context.create_variable(node->name, llvm_type, node->type);
+    if (!is_array) {
+        codegen_context.builder->CreateStore(init_val, alloca);
+        return;
+    }
     emit_array_init(alloca, llvm_type, init_val, count_array_elements(node->type.get()));
 }
 

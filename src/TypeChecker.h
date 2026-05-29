@@ -31,11 +31,12 @@ namespace tc {
         // Variable scopes (stack of name→type maps)
         std::vector<std::map<std::string, std::shared_ptr<TypeAst>>> scopes;
 
-        // Function and struct registries
+        // Function, struct, and global variable registries
         std::map<std::string, FuncSignature>       func_table;
         std::map<std::string, std::vector<StructField>> struct_table;
         // struct_methods[StructName][methodName] = FuncSignature (includes self as param[0])
         std::map<std::string, std::map<std::string, FuncSignature>> struct_methods;
+        std::map<std::string, std::shared_ptr<TypeAst>> global_vars;
 
         // Accumulated errors
         std::vector<SemanticError> errors;

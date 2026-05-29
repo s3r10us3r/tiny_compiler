@@ -97,6 +97,7 @@ run_ok test_strings.tc         "hello world tiny"
 run_ok test_nested_structs.tc  "1 6 3 10 12 1"
 run_ok test_class_keyword.tc   "24 20 0 25 1"
 run_ok test_sort.tc            "1 2 3 5 8 9"
+run_ok test_globals.tc         "10 20 30 1 99"
 
 # ------------------------------------------------------------------
 # Error detection tests (each sub-error is checked individually)
